@@ -32,6 +32,7 @@
     --blue-bg: #e0ebfe;
     --blue-border: #9cc0f7;
     --blue-text: #1e40af;
+    --blue-soft: #3b5cc6;
     --red-bg: #fde9e7;
     --red-border: #f5a8a0;
     --red-text: #b42318;
@@ -193,9 +194,12 @@
   .box { margin-top: 24px; border-radius: 22px; border: 3px solid; padding: 20px 14px; scroll-margin-top: 16px; }
   .box[hidden] { display: none; }
 
-  .result { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); transition: opacity .2s; }
-  .result .label { text-align: center; font-size: 18px; font-weight: 800; }
-  .result .big {
+  /* The current result and "上一筆" share the same layout, only colors differ. */
+  .result { --soft: var(--green-soft); background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); transition: opacity .2s; }
+  .prev { --soft: var(--blue-soft); background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .box .label { text-align: center; font-size: 18px; font-weight: 800; }
+  .box .time { text-align: center; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--soft); }
+  .box .big {
     text-align: center;
     font-size: clamp(38px, 12vw, 48px);
     font-weight: 900;
@@ -203,8 +207,9 @@
     margin: 4px 0 2px;
     font-variant-numeric: tabular-nums;
   }
-  .result .big small { font-size: 0.5em; font-weight: 800; margin-left: 4px; }
-  .result .sub { text-align: center; font-size: 15px; font-weight: 600; color: var(--green-soft); }
+  .box .big small { font-size: 0.5em; font-weight: 800; margin-left: 4px; }
+  .prev .big { font-size: clamp(32px, 10vw, 40px); }
+  .box .sub { text-align: center; font-size: 15px; font-weight: 600; color: var(--soft); }
 
   .stale-note { display: none; margin: 10px 0 0; text-align: center; font-size: 14px; font-weight: 700; color: #9a6a12; }
   .result.stale { opacity: 0.55; }
@@ -218,7 +223,7 @@
     padding: 10px 12px;
   }
   .nw { white-space: nowrap; }
-  .steps .step-name { display: block; font-size: 15px; font-weight: 800; color: var(--green-soft); margin-bottom: 2px; }
+  .steps .step-name { display: block; font-size: 15px; font-weight: 800; color: var(--soft); margin-bottom: 2px; }
   .steps .step-name .how { font-size: 13px; font-weight: 600; opacity: 0.9; }
   .steps .eq {
     display: block;
@@ -232,13 +237,8 @@
 
   .error { background: var(--red-bg); border-color: var(--red-border); color: var(--red-text); font-size: 17px; font-weight: 700; text-align: center; line-height: 1.5; }
 
-  .prev { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); text-align: center; }
-  .prev h2 { margin: 0; font-size: 20px; font-weight: 900; }
-  .prev .time { margin-top: 2px; font-size: 14px; font-weight: 600; opacity: 0.8; }
-  .prev .big { margin: 8px 0 6px; font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
-  .prev ul { list-style: none; margin: 0; padding: 0; font-size: 15px; font-weight: 600; line-height: 1.7; font-variant-numeric: tabular-nums; }
+  .box-actions { text-align: center; margin-top: 8px; }
   .link-btn {
-    margin-top: 12px;
     padding: 6px 10px;
     border: 0;
     background: none;
@@ -326,11 +326,13 @@
   </section>
 
   <section id="prev" class="box prev" hidden>
-    <h2>📋 上一筆計算</h2>
+    <div class="label">📋 上一筆計算</div>
     <div class="time" id="prevTime"></div>
-    <div class="big">🐱 <span id="prevKcal"></span> 大卡</div>
-    <ul id="prevLines"></ul>
-    <button type="button" class="link-btn" id="clearHistory">清除紀錄</button>
+    <div class="big"><span id="prevKcal">0.00</span><small>大卡</small></div>
+    <div class="sub" id="prevSub"></div>
+    <div class="steps-title">📊 計算過程：</div>
+    <ol class="steps" id="prevSteps"></ol>
+    <div class="box-actions"><button type="button" class="link-btn" id="clearHistory">清除紀錄</button></div>
   </section>
 
   <footer>
@@ -530,11 +532,13 @@
       '<span class="eq"><span class="nw">' + lhs + '</span> <span class="nw">= <b>' + rhs + '</b></span></span></li>';
   }
 
-  function renderResult(rec) {
-    var v = rec.in, o = rec.out;
-    $('kcal').textContent = fmt(o.kcal, 2);
-    $('resultSub').textContent = '吃掉罐頭 ' + g(o.eatenCan) + '（共吃掉 ' + g(o.eaten) + '）';
+  function subHTML(o) {
+    return '<span class="nw">吃掉罐頭 ' + g(o.eatenCan) + '</span><span class="nw">（共吃掉 ' + g(o.eaten) + '）</span>';
+  }
 
+  // Formula steps for a record; used by both the current result and "上一筆".
+  function stepsHTML(rec) {
+    var v = rec.in, o = rec.out;
     var html = '';
     html += stepHTML('① 總重量', '= 罐頭 + 水',
       g(v.can) + ' + ' + g(v.water), g(o.total));
@@ -551,8 +555,13 @@
       html += stepHTML('💧 順便算：喝到的水', '= 吃掉重量 − 吃掉罐頭',
         g(o.eaten) + ' − ' + g(o.eatenCan), g(o.eaten - o.eatenCan), true);
     }
-    $('steps').innerHTML = html;
+    return html;
+  }
 
+  function renderResult(rec) {
+    $('kcal').textContent = fmt(rec.out.kcal, 2);
+    $('resultSub').innerHTML = subHTML(rec.out);
+    $('steps').innerHTML = stepsHTML(rec);
     resultBox.classList.remove('stale');
     resultBox.hidden = false;
   }
@@ -568,29 +577,10 @@
     // so "上一筆" must be records[1]. Otherwise it's records[0].
     var rec = state.records[state.showingCurrent ? 1 : 0];
     if (!rec) { prevBox.hidden = true; return; }
-    var v = rec.in, o = rec.out;
     $('prevTime').textContent = formatTime(rec.t);
-    $('prevKcal').textContent = fmt(o.kcal, 2);
-    var lines = [
-      ['• 總重量 = ' + g(v.can) + ' + ' + g(v.water), '= ' + g(o.total)],
-      ['• 吃掉重量 = ' + g(o.total) + ' − ' + g(v.left), '= ' + g(o.eaten)],
-      ['• 罐頭佔比 = ' + g(v.can) + ' ÷ ' + g(o.total), '= ' + pc(pctOf(rec))],
-      ['• 吃掉罐頭 = ' + pc(pctOf(rec)) + ' × ' + g(o.eaten), '= ' + g(o.eatenCan)],
-      ['• 熱量密度 = ' + fmtDensity(v.density) + ' 大卡/克']
-    ];
-    var ul = $('prevLines');
-    ul.innerHTML = '';
-    lines.forEach(function (chunks) {
-      var li = document.createElement('li');
-      chunks.forEach(function (text, i) {
-        if (i > 0) li.appendChild(document.createTextNode(' '));
-        var span = document.createElement('span');
-        span.className = 'nw';
-        span.textContent = text;
-        li.appendChild(span);
-      });
-      ul.appendChild(li);
-    });
+    $('prevKcal').textContent = fmt(rec.out.kcal, 2);
+    $('prevSub').innerHTML = subHTML(rec.out);
+    $('prevSteps').innerHTML = stepsHTML(rec);
     prevBox.hidden = false;
   }
 
