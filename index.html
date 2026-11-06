@@ -211,7 +211,7 @@
   .result.stale .stale-note { display: block; }
 
   .steps-title { margin: 18px 0 10px; font-size: 16px; font-weight: 800; }
-  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .steps li {
     background: rgba(255, 255, 255, 0.65);
     border-radius: 14px;
@@ -453,17 +453,28 @@
   // The calculation
   //   總重量   = 罐頭 + 水
   //   吃掉重量 = 總重量 - 剩下
-  //   吃掉罐頭 = (吃掉重量 ÷ 總重量) × 罐頭      (水和罐頭是均勻混合的)
+  //   罐頭佔比 = 罐頭 ÷ 總重量                   (水和罐頭是均勻混合的)
+  //   吃掉罐頭 = 罐頭佔比 × 吃掉重量
   //   攝取熱量 = 吃掉罐頭 × 每公克熱量
-  // Every step is rounded to 2 decimals, so each line of the shown
-  // formula can be checked by hand with a calculator.
+  // Every step is rounded to 2 decimals (罐頭佔比 to 2 decimals of a
+  // percent, e.g. 83.33%), and the rounded value is what the next step
+  // uses, so each line of the shown formula can be checked by hand.
   // ------------------------------------------------------------------
+  function canPercent(can, total) {  // hundredths of a percent: 83.33% -> 8333
+    return total === 0 ? 0 : roundDiv(can * 10000, total);
+  }
+
   function compute(v) {
     var total = v.can + v.water;
     var eaten = total - v.left;
-    var eatenCan = total === 0 ? 0 : roundDiv(eaten * v.can, total);
+    var pct = canPercent(v.can, total);
+    var eatenCan = roundDiv(eaten * pct, 10000);
     var kcal = roundDiv(eatenCan * v.density, 1000);
-    return { total: total, eaten: eaten, eatenCan: eatenCan, eatenWater: eaten - eatenCan, kcal: kcal };
+    return { total: total, eaten: eaten, pct: pct, eatenCan: eatenCan, eatenWater: eaten - eatenCan, kcal: kcal };
+  }
+
+  function pctOf(rec) {
+    return Number.isInteger(rec.out.pct) ? rec.out.pct : canPercent(rec.in.can, rec.out.total);
   }
 
   function readDensityString() {
@@ -508,6 +519,7 @@
   // Rendering
   // ------------------------------------------------------------------
   function g(n) { return fmt(n, 2) + 'g'; }
+  function pc(n) { return fmt(n, 2) + '%'; }
 
   // name: step title, how: the general formula, lhs/rhs: the numbers.
   // Each chunk is kept on one line, so on a narrow phone the line only
@@ -528,9 +540,12 @@
       g(v.can) + ' + ' + g(v.water), g(o.total));
     html += stepHTML('② 吃掉重量', '= 總重量 − 剩下',
       g(o.total) + ' − ' + g(v.left), g(o.eaten));
-    html += stepHTML('③ 吃掉罐頭', '= (吃掉重量 ÷ 總重量) × 罐頭',
-      '(' + g(o.eaten) + ' ÷ ' + g(o.total) + ') × ' + g(v.can), g(o.eatenCan));
-    html += stepHTML('④ 攝取熱量', '= 吃掉罐頭 × 每公克熱量',
+    var pct = pctOf(rec);
+    html += stepHTML('③ 罐頭佔比', '= 罐頭 ÷ 總重量',
+      g(v.can) + ' ÷ ' + g(o.total), pc(pct));
+    html += stepHTML('④ 吃掉罐頭', '= 罐頭佔比 × 吃掉重量',
+      pc(pct) + ' × ' + g(o.eaten), g(o.eatenCan));
+    html += stepHTML('⑤ 攝取熱量', '= 吃掉罐頭 × 每公克熱量',
       g(o.eatenCan) + ' × ' + fmtDensity(v.density), fmt(o.kcal, 2) + ' 大卡');
     if (v.water > 0) {
       html += stepHTML('💧 順便算：喝到的水', '= 吃掉重量 − 吃掉罐頭',
@@ -559,7 +574,8 @@
     var lines = [
       ['• 總重量 = ' + g(v.can) + ' + ' + g(v.water), '= ' + g(o.total)],
       ['• 吃掉重量 = ' + g(o.total) + ' − ' + g(v.left), '= ' + g(o.eaten)],
-      ['• 吃掉罐頭 = ' + g(o.eatenCan)],
+      ['• 罐頭佔比 = ' + g(v.can) + ' ÷ ' + g(o.total), '= ' + pc(pctOf(rec))],
+      ['• 吃掉罐頭 = ' + pc(pctOf(rec)) + ' × ' + g(o.eaten), '= ' + g(o.eatenCan)],
       ['• 熱量密度 = ' + fmtDensity(v.density) + ' 大卡/克']
     ];
     var ul = $('prevLines');
