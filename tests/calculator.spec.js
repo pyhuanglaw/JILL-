@@ -40,6 +40,12 @@ test('主畫面圖示檔案存在，而且是 PNG 圖片', async ({ page, reques
   expect(res.headers()['content-type']).toContain('image/png');
 });
 
+test('「1. 罐頭重量」前面的罐頭圖片有載入', async ({ page }) => {
+  const img = page.locator('label[for="can"] img.label-icon');
+  await expect(img).toBeVisible();
+  await expect.poll(() => img.evaluate((el) => el.complete && el.naturalWidth)).toBeGreaterThan(0);
+});
+
 test('按計算或點她，她會再揮一次手', async ({ page }) => {
   const figure = page.locator('#figure');
   await calc(page, '10', '2', '3');

@@ -153,6 +153,8 @@
     font-weight: 800;
     line-height: 1.3;
   }
+  .field > label.with-icon { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .label-icon { flex: 0 0 auto; width: 40px; height: 38px; }
   .optional { font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 4px; }
 
   .row { display: flex; gap: 12px; }
@@ -446,7 +448,7 @@
 
   <form id="form" novalidate autocomplete="off">
     <div class="field">
-      <label for="can">🥫 1. 罐頭重量 (公克)</label>
+      <label for="can" class="with-icon"><img src="can-icon.png" class="label-icon" width="40" height="38" alt="">1. 罐頭重量 (公克)</label>
       <div class="row">
         <input id="can" class="num" type="text" inputmode="decimal" enterkeyhint="next"
                placeholder="例如 85" data-int="5" data-dec="2">
