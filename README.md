@@ -27,3 +27,15 @@
 ## 開啟 GitHub Pages
 
 Settings → Pages → Build and deployment → Source 選「Deploy from a branch」→ Branch 選 `main`、資料夾 `/ (root)` → Save。
+
+## 自動測試
+
+每次有新的修改推上 GitHub，GitHub Actions 會自動用 iPhone（Safari 引擎）和 Android（Chrome 引擎）兩種手機各跑一次 `tests/calculator.spec.js` 裡的測試，包括：數字鍵盤、小數點兩位限制、0 按鈕、截圖的例子 6.38 大卡、上一筆是否正確、重新整理後資料還在、錯誤提醒，以及隨機 500 組數字的算式檢查。結果在 repo 的 **Actions** 分頁可以看到。
+
+自己電腦上跑：
+
+```bash
+npm ci
+npx playwright install webkit chromium
+npm test
+```
