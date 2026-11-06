@@ -16,6 +16,25 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
 });
 
+test('標題是「老婆大人」，打開網頁時動畫不會擋住輸入', async ({ page }) => {
+  await expect(page).toHaveTitle(/老婆大人/);
+  await expect(page.locator('h1')).toHaveText('老婆大人');
+  await expect(page.locator('#figure')).toBeVisible();
+  // 一打開就能點罐頭重量輸入框，沒有東西蓋住它
+  const can = page.locator('#can');
+  await can.click({ timeout: 1000 });
+  await can.pressSequentially('85');
+  await expect(can).toHaveValue('85');
+});
+
+test('按計算或點她，她會再揮一次手', async ({ page }) => {
+  const figure = page.locator('#figure');
+  await calc(page, '10', '2', '3');
+  await expect(figure).toHaveClass(/play/);
+  await figure.click();
+  await expect(figure).toHaveClass(/play/);
+});
+
 test('每個輸入框都會跳出有小數點的數字鍵盤', async ({ page }) => {
   for (const id of ['can', 'density', 'water', 'left']) {
     await expect(page.locator('#' + id)).toHaveAttribute('inputmode', 'decimal');

@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f8dc86">
+<meta name="apple-mobile-web-app-title" content="老婆大人">
+<meta name="application-name" content="老婆大人">
 <meta name="format-detection" content="telephone=no">
 <meta name="color-scheme" content="light">
-<title>貓咪熱量計算器</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+<title>老婆大人｜貓咪熱量計算器</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
   :root {
     --bg-top: #fcf1cb;
@@ -74,18 +77,71 @@
   }
 
   /* ---------- header ---------- */
-  header { text-align: center; margin-bottom: 22px; }
-  h1 {
-    margin: 0;
-    font-size: clamp(26px, 7.6vw, 34px);
-    font-weight: 900;
-    letter-spacing: 0.02em;
-    line-height: 1.25;
+  .hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px;
+    margin: -6px -4px 18px;
+    padding-bottom: 14px;
+    border-bottom: 3px dashed #f6dc93;
   }
-  h1 .emoji { margin-right: 6px; }
-  .dots { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
-  .dots i { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--orange); }
-  .dots i:nth-child(2) { width: 10px; height: 10px; transform: translateY(-3px); }
+  .hero-text { min-width: 0; padding-bottom: 6px; }
+  .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #ffe3ee;
+    color: #e0457b;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+  h1 {
+    margin: 4px 0 2px;
+    font-size: clamp(42px, 13.5vw, 54px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  /* Bright gradient title with one light sweep when the page opens. */
+  .shine {
+    background: linear-gradient(100deg, #ff3d7f 0%, #ff7a45 38%, #ffb21e 50%, #fff3c4 56%, #ffb21e 62%, #ff7a45 75%, #ff3d7f 100%);
+    background-size: 250% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: shine 1.1s ease-out 0.15s 1 both;
+    filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.9)) drop-shadow(0 3px 6px rgba(224, 69, 123, 0.25));
+  }
+  @keyframes shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+  .subtitle { margin: 0; font-size: 17px; font-weight: 800; color: var(--brown); white-space: nowrap; }
+
+  /* ---------- the tall ponytail girl + cat (inline SVG, CSS-only animation) ---------- */
+  .figure {
+    flex: 0 0 auto;
+    width: 104px;
+    height: 134px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    overflow: visible;
+  }
+  .figure * { transform-box: view-box; }
+  .figure .ponytail { transform-origin: 39px 21px; }
+  .figure .arm-wave { transform-origin: 66px 62px; }
+  .figure .cat-tail { transform-origin: 106px 150px; }
+  .figure .girl { transform-origin: 56px 150px; }
+  .figure.play .girl { animation: hop 0.5s ease-out 1 both; }
+  .figure.play .ponytail { animation: sway 0.9s ease-in-out 0.15s 3; }
+  .figure.play .arm-wave { animation: wave 0.42s ease-in-out 0.2s 4; }
+  .figure.play .cat-tail { animation: wag 0.8s ease-in-out 0.3s 3; }
+  @keyframes hop { 0% { transform: translateY(10px) scale(0.96); opacity: 0; } 60% { transform: translateY(-3px); opacity: 1; } 100% { transform: none; } }
+  @keyframes sway { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(14deg); } 70% { transform: rotate(-10deg); } }
+  @keyframes wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-22deg); } }
+  @keyframes wag { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-18deg); } }
 
   /* ---------- fields ---------- */
   .field { margin: 0 0 20px; padding: 0; border: 0; min-width: 0; }
@@ -253,21 +309,74 @@
 
   @media (max-width: 360px) {
     .card { padding: 22px 12px 22px; border-radius: 28px; }
-    .radio { padding: 6px 4px; font-size: 16px; gap: 5px; }
+    .radio { padding: 6px 4px; font-size: 15px; gap: 4px; }
+    .radio input { width: 18px; height: 18px; }
     .steps .eq { font-size: 16px; }
     .zero { flex-basis: 56px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
+    .shine, .figure * { animation: none !important; }
+    .shine { background-position: 0 0; }
   }
 </style>
 </head>
 <body>
 <main class="card">
-  <header>
-    <h1><span class="emoji" aria-hidden="true">🐱</span>貓咪熱量計算器</h1>
-    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  <header class="hero">
+    <div class="hero-text">
+      <span class="badge">👑 專屬</span>
+      <h1><span class="shine">老婆大人</span></h1>
+      <p class="subtitle">🐱 貓咪熱量計算器</p>
+    </div>
+    <svg id="figure" class="figure play" viewBox="0 0 124 160" aria-hidden="true" focusable="false">
+      <ellipse cx="72" cy="153" rx="50" ry="4.5" fill="#000" opacity="0.07"/>
+      <g class="girl">
+        <!-- ponytail (behind the head) -->
+        <g class="ponytail">
+          <path d="M40,21 C25,17 20,36 27,55 C29,61 34,63 36,58 C31,45 32,32 41,25 Z" fill="#4a2a1a"/>
+          <circle cx="39.5" cy="21.5" r="3.4" fill="#ff4f8b"/>
+        </g>
+        <!-- head -->
+        <circle cx="56" cy="33" r="16" fill="#4a2a1a"/>
+        <ellipse cx="56" cy="37" rx="12.5" ry="13" fill="#ffe1c9"/>
+        <path d="M43.5,35 Q44,18.5 56,18 Q69,18.5 69,35 Q64,26 56,26.5 Q48,26 43.5,35 Z" fill="#4a2a1a"/>
+        <ellipse cx="51.5" cy="38.5" rx="1.6" ry="2.2" fill="#2b1a12"/>
+        <ellipse cx="60.5" cy="38.5" rx="1.6" ry="2.2" fill="#2b1a12"/>
+        <circle cx="48" cy="43" r="2.4" fill="#ff8fab" opacity="0.6"/>
+        <circle cx="64" cy="43" r="2.4" fill="#ff8fab" opacity="0.6"/>
+        <path d="M52.5,44.2 Q56,47.8 59.5,44.2" stroke="#c4475a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <!-- neck + body -->
+        <rect x="53" y="48" width="6" height="8" fill="#ffe1c9"/>
+        <line x1="45" y1="63" x2="40" y2="90" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
+        <line x1="45" y1="62" x2="43.5" y2="71" stroke="#ff6f9f" stroke-width="7" stroke-linecap="round"/>
+        <rect x="47" y="90" width="8" height="58" rx="4" fill="#4f6fd1"/>
+        <rect x="57" y="90" width="8" height="58" rx="4" fill="#4f6fd1"/>
+        <ellipse cx="50" cy="149" rx="6.5" ry="3.2" fill="#5a3226"/>
+        <ellipse cx="62" cy="149" rx="6.5" ry="3.2" fill="#5a3226"/>
+        <path d="M44,61 Q56,52 68,61 L66,94 L46,94 Z" fill="#ff6f9f"/>
+        <path d="M46,88 L66,88" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+        <!-- waving arm -->
+        <g class="arm-wave">
+          <line x1="66" y1="63" x2="77" y2="40" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
+          <line x1="66" y1="63" x2="69.5" y2="55" stroke="#ff6f9f" stroke-width="7" stroke-linecap="round"/>
+          <circle cx="78" cy="38" r="3.6" fill="#ffe1c9"/>
+        </g>
+      </g>
+      <!-- cat -->
+      <g class="cat">
+        <path class="cat-tail" d="M106,150 Q121,147 117,131" stroke="#f0a04b" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="98" cy="146" rx="12" ry="10" fill="#f0a04b"/>
+        <path d="M89,125 L90,114 L96,121 Z M107,125 L106,114 L100,121 Z" fill="#f0a04b"/>
+        <circle cx="98" cy="128" r="9" fill="#f0a04b"/>
+        <path d="M91,124 L91.6,117 L95,121 Z M105,124 L104.4,117 L101,121 Z" fill="#ffc7a8"/>
+        <ellipse cx="94.8" cy="128" rx="1.3" ry="1.7" fill="#2b1a12"/>
+        <ellipse cx="101.2" cy="128" rx="1.3" ry="1.7" fill="#2b1a12"/>
+        <path d="M97,131 L99,131 L98,132.3 Z" fill="#e8708a"/>
+        <path d="M93,140 Q98,138 103,140" stroke="#d9822f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
   </header>
 
   <form id="form" novalidate autocomplete="off">
@@ -619,6 +728,7 @@
 
     renderResult(rec);
     renderPrev();
+    cheer();
 
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     resultBox.scrollIntoView({ behavior: smoothOrAuto(), block: 'start' });
@@ -723,6 +833,14 @@
       markStale();
     });
   });
+
+  var figure = $('figure');
+  function cheer() {
+    figure.classList.remove('play');
+    void figure.getBoundingClientRect();   // restart the CSS animation
+    figure.classList.add('play');
+  }
+  figure.addEventListener('click', cheer);
 
   form.addEventListener('submit', function (e) { e.preventDefault(); calculate(); });
   $('resetBtn').addEventListener('click', reset);
