@@ -20,9 +20,15 @@ test('標題是「老婆大人」，打開網頁時動畫不會擋住輸入', as
   await expect(page).toHaveTitle(/老婆大人/);
   await expect(page.locator('h1')).toHaveText('老婆大人');
   await expect(page.locator('#figure')).toBeVisible();
-  // 一打開就能點罐頭重量輸入框，沒有東西蓋住它
+  // 一打開就能點罐頭重量輸入框：輸入框正中間最上面的就是它自己，沒有東西蓋住
   const can = page.locator('#can');
-  await can.click({ timeout: 1000 });
+  const coveredBy = await can.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return top === el ? null : (top && top.outerHTML.slice(0, 80));
+  });
+  expect(coveredBy).toBeNull();
+  await can.click();
   await can.pressSequentially('85');
   await expect(can).toHaveValue('85');
 });
