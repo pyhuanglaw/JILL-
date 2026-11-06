@@ -1,0 +1,11 @@
+{
+  "name": "cat-kcal-calculator",
+  "private": true,
+  "description": "貓咪熱量計算器的自動測試",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

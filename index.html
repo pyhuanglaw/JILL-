@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8dc86">
+<meta name="apple-mobile-web-app-title" content="老婆大人">
+<meta name="application-name" content="老婆大人">
+<meta name="format-detection" content="telephone=no">
+<meta name="color-scheme" content="light">
+<title>老婆大人｜貓咪熱量計算器</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root {
+    --bg-top: #fcf1cb;
+    --bg-bottom: #f5d06f;
+    --card: #fffaf0;
+    --card-border: #eba13a;
+    --brown: #8a4512;
+    --muted: #a8763e;
+    --field-border: #f3d15c;
+    --field-focus: #eba13a;
+    --zero: #f3c14b;
+    --zero-press: #e6ad2c;
+    --orange: #eda136;
+    --orange-press: #dc8f22;
+    --purple: #8b5cf6;
+    --purple-press: #7746e8;
+    --radio-dot: #3b82f6;
+    --green-bg: #e4f9ea;
+    --green-border: #a3e6b6;
+    --green-text: #1f6b35;
+    --green-soft: #3f8a55;
+    --blue-bg: #e0ebfe;
+    --blue-border: #9cc0f7;
+    --blue-text: #1e40af;
+    --blue-soft: #3b5cc6;
+    --red-bg: #fde9e7;
+    --red-border: #f5a8a0;
+    --red-text: #b42318;
+    --font: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans TC",
+            "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    min-height: 100%;
+    background-color: var(--bg-top);
+    background-image: linear-gradient(160deg, var(--bg-top) 0%, #f9e3a0 45%, var(--bg-bottom) 100%);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: var(--font);
+    color: var(--brown);
+    background: transparent;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+  }
+
+  button, input { font-family: inherit; }
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+
+  .card {
+    max-width: 520px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 3px solid var(--card-border);
+    border-radius: 34px;
+    padding: 28px 18px 24px;
+    box-shadow: 0 18px 40px rgba(176, 112, 20, 0.18);
+  }
+
+  /* ---------- header ---------- */
+  .hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px;
+    margin: -6px -4px 18px;
+    padding-bottom: 14px;
+    border-bottom: 3px dashed #f6dc93;
+  }
+  .hero-text { min-width: 0; padding-bottom: 6px; }
+  .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #ffe3ee;
+    color: #e0457b;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+  h1 {
+    margin: 4px 0 2px;
+    font-size: clamp(42px, 13.5vw, 54px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  /* Bright gradient title with one light sweep when the page opens. */
+  .shine {
+    background: linear-gradient(100deg, #ff3d7f 0%, #ff7a45 38%, #ffb21e 50%, #fff3c4 56%, #ffb21e 62%, #ff7a45 75%, #ff3d7f 100%);
+    background-size: 250% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: shine 1.1s ease-out 0.15s 1 both;
+    filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.9)) drop-shadow(0 3px 6px rgba(224, 69, 123, 0.25));
+  }
+  @keyframes shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+  .subtitle { margin: 0; font-size: 17px; font-weight: 800; color: var(--brown); white-space: nowrap; }
+
+  /* ---------- the tall ponytail girl + cat (inline SVG, CSS-only animation) ---------- */
+  .figure {
+    flex: 0 0 auto;
+    width: 104px;
+    height: 134px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    overflow: visible;
+  }
+  .figure * { transform-box: view-box; }
+  .figure .ponytail { transform-origin: 39px 21px; }
+  .figure .arm-wave { transform-origin: 68px 61px; }
+  .figure .cat-tail { transform-origin: 106px 150px; }
+  .figure .girl { transform-origin: 56px 150px; }
+  .figure.play .girl { animation: hop 0.5s ease-out 1 both; }
+  .figure.play .ponytail { animation: sway 0.9s ease-in-out 0.15s 3; }
+  .figure.play .arm-wave { animation: wave 0.42s ease-in-out 0.2s 4; }
+  .figure.play .cat-tail { animation: wag 0.8s ease-in-out 0.3s 3; }
+  @keyframes hop { 0% { transform: translateY(10px) scale(0.96); opacity: 0; } 60% { transform: translateY(-3px); opacity: 1; } 100% { transform: none; } }
+  @keyframes sway { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(14deg); } 70% { transform: rotate(-10deg); } }
+  @keyframes wave { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-22deg); } }
+  @keyframes wag { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-18deg); } }
+
+  /* ---------- fields ---------- */
+  .field { margin: 0 0 20px; padding: 0; border: 0; min-width: 0; }
+  .field > label, .field > legend {
+    display: block;
+    padding: 0;
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  .optional { font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 4px; }
+
+  .row { display: flex; gap: 12px; }
+  .row input { flex: 1; min-width: 0; }
+
+  input.num {
+    width: 100%;
+    height: 60px;
+    padding: 0 18px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #2b2117;
+    background: #fff;
+    border: 3px solid var(--field-border);
+    border-radius: 18px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    font-variant-numeric: tabular-nums;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input.num::placeholder { color: #c9b998; font-weight: 500; font-size: 18px; }
+  input.num:focus { border-color: var(--field-focus); box-shadow: 0 0 0 4px rgba(235, 161, 58, 0.22); }
+  input.num:disabled {
+    background: #fcf7ea;
+    border-color: #f6e7b4;
+    color: #9d9686;
+    -webkit-text-fill-color: #9d9686;
+    opacity: 1;
+  }
+  input.num.invalid { border-color: #ef7f72; box-shadow: 0 0 0 4px rgba(239, 127, 114, 0.18); }
+
+  .zero {
+    flex: 0 0 64px;
+    height: 60px;
+    border: 0;
+    border-radius: 18px;
+    background: var(--zero);
+    color: #fff;
+    font-size: 26px;
+    font-weight: 900;
+    box-shadow: 0 3px 0 rgba(200, 140, 20, 0.35);
+    transition: transform .08s, background .15s;
+  }
+  .zero:active { transform: translateY(2px) scale(0.97); background: var(--zero-press); box-shadow: none; }
+
+  /* ---------- density radios ---------- */
+  .radios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 50px;
+    padding: 6px 8px;
+    white-space: nowrap;
+    background: #fff;
+    border: 3px solid var(--field-border);
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2b2117;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color .15s, background .15s;
+  }
+  .radio input { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--radio-dot); }
+  .radio:has(input:checked) { border-color: var(--field-focus); background: #fff5da; }
+  .radio:has(input:focus-visible) { box-shadow: 0 0 0 4px rgba(235, 161, 58, 0.22); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 62px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 18px;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    transition: transform .08s, background .15s;
+  }
+  .btn:active { transform: translateY(2px) scale(0.99); }
+  .btn-calc { background: var(--orange); box-shadow: 0 4px 0 #cf8420; margin-top: 6px; }
+  .btn-calc:active { background: var(--orange-press); box-shadow: 0 1px 0 #cf8420; }
+  .btn-reset { background: var(--purple); box-shadow: 0 4px 0 #6d3fd6; }
+  .btn-reset:active { background: var(--purple-press); box-shadow: 0 1px 0 #6d3fd6; }
+
+  /* ---------- result boxes ---------- */
+  .box { margin-top: 24px; border-radius: 22px; border: 3px solid; padding: 20px 14px; scroll-margin-top: 16px; }
+  .box[hidden] { display: none; }
+
+  /* The current result and "上一筆" share the same layout, only colors differ. */
+  .result { --soft: var(--green-soft); background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); transition: opacity .2s; }
+  .prev { --soft: var(--blue-soft); background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .box .label { text-align: center; font-size: 18px; font-weight: 800; }
+  .box .time { text-align: center; margin-top: 2px; font-size: 14px; font-weight: 600; color: var(--soft); }
+  .box .big {
+    text-align: center;
+    font-size: clamp(38px, 12vw, 48px);
+    font-weight: 900;
+    line-height: 1.15;
+    margin: 4px 0 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .box .big small { font-size: 0.5em; font-weight: 800; margin-left: 4px; }
+  .prev .big { font-size: clamp(32px, 10vw, 40px); }
+  .box .sub { text-align: center; font-size: 15px; font-weight: 600; color: var(--soft); }
+
+  .stale-note { display: none; margin: 10px 0 0; text-align: center; font-size: 14px; font-weight: 700; color: #9a6a12; }
+  .result.stale { opacity: 0.55; }
+  .result.stale .stale-note { display: block; }
+
+  .steps-title { margin: 18px 0 10px; font-size: 16px; font-weight: 800; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .steps li {
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+  .nw { white-space: nowrap; }
+  .steps .step-name { display: block; font-size: 15px; font-weight: 800; color: var(--soft); margin-bottom: 2px; }
+  .steps .step-name .how { font-size: 13px; font-weight: 600; opacity: 0.9; }
+  .steps .eq {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+  .steps .eq b { font-weight: 900; }
+  .steps .extra .eq { font-size: 16px; }
+
+  .error { background: var(--red-bg); border-color: var(--red-border); color: var(--red-text); font-size: 17px; font-weight: 700; text-align: center; line-height: 1.5; }
+
+  .box-actions { text-align: center; margin-top: 8px; }
+  .link-btn {
+    padding: 6px 10px;
+    border: 0;
+    background: none;
+    color: var(--blue-text);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: underline;
+    opacity: 0.75;
+  }
+
+  footer { margin-top: 22px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); line-height: 1.6; }
+
+  /* ---------- cat pop-up: 媽咪我愛你 (never blocks taps) ---------- */
+  .cat-pop {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    z-index: 50;
+    width: 150px;
+    margin-left: -75px;
+    padding-bottom: env(safe-area-inset-bottom);
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(115%);
+  }
+  .cat-pop.show { visibility: visible; animation: peek 3s cubic-bezier(.22, .9, .32, 1.15) both; }
+  .cat-face { display: none; width: 150px; height: 156px; margin-bottom: -14px; filter: drop-shadow(0 -2px 6px rgba(120, 70, 20, 0.18)); }
+  .cat-face.on { display: block; }
+  .bubble {
+    position: absolute;
+    bottom: calc(146px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: #fff;
+    border: 3px solid #ffb3cb;
+    color: #e0457b;
+    font-size: 21px;
+    font-weight: 900;
+    box-shadow: 0 6px 16px rgba(224, 69, 123, 0.25);
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -11px;
+    margin-left: -9px;
+    border: 9px solid transparent;
+    border-top-color: #ffb3cb;
+    border-bottom: 0;
+  }
+  .cat-pop.show .heart { display: inline-block; animation: beat 0.6s ease-in-out 0.5s 3; }
+  @keyframes peek {
+    0% { transform: translateY(115%); }
+    14% { transform: translateY(-5%); }
+    20%, 84% { transform: translateY(0); }
+    100% { transform: translateY(115%); }
+  }
+  @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+  @keyframes fadepop { 0% { opacity: 0; } 10%, 85% { opacity: 1; } 100% { opacity: 0; } }
+
+  @media (max-width: 360px) {
+    .card { padding: 22px 12px 22px; border-radius: 28px; }
+    .radio { padding: 6px 4px; font-size: 15px; gap: 4px; }
+    .radio input { width: 18px; height: 18px; }
+    .steps .eq { font-size: 16px; }
+    .zero { flex-basis: 56px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    .shine, .figure * { animation: none !important; }
+    .cat-pop.show { transform: none; animation-name: fadepop; animation-timing-function: linear; }
+    .cat-pop.show .heart { animation: none; }
+    .shine { background-position: 0 0; }
+  }
+</style>
+</head>
+<body>
+<main class="card">
+  <header class="hero">
+    <div class="hero-text">
+      <span class="badge">👑 專屬</span>
+      <h1><span class="shine">老婆大人</span></h1>
+      <p class="subtitle">🐱 貓咪熱量計算器</p>
+    </div>
+    <svg id="figure" class="figure play" viewBox="0 0 124 160" aria-hidden="true" focusable="false">
+      <ellipse cx="72" cy="153" rx="50" ry="4.5" fill="#000" opacity="0.07"/>
+      <g class="girl">
+        <!-- ponytail (behind the head) -->
+        <g class="ponytail">
+          <path d="M40,21 C25,17 20,36 27,55 C29,61 34,63 36,58 C31,45 32,32 41,25 Z" fill="#4a2a1a"/>
+          <circle cx="39.5" cy="21.5" r="3.4" fill="#ff4f8b"/>
+        </g>
+        <!-- head -->
+        <circle cx="56" cy="33" r="16" fill="#4a2a1a"/>
+        <ellipse cx="56" cy="37" rx="12.5" ry="13" fill="#ffe1c9"/>
+        <path d="M43.5,35 Q44,18.5 56,18 Q69,18.5 69,35 Q64,26 56,26.5 Q48,26 43.5,35 Z" fill="#4a2a1a"/>
+        <ellipse cx="51.5" cy="38.5" rx="1.6" ry="2.2" fill="#2b1a12"/>
+        <ellipse cx="60.5" cy="38.5" rx="1.6" ry="2.2" fill="#2b1a12"/>
+        <circle cx="48" cy="43" r="2.4" fill="#ff8fab" opacity="0.6"/>
+        <circle cx="64" cy="43" r="2.4" fill="#ff8fab" opacity="0.6"/>
+        <path d="M52.5,44.2 Q56,47.8 59.5,44.2" stroke="#c4475a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <!-- neck -->
+        <rect x="53" y="48" width="6" height="8" fill="#ffe1c9"/>
+        <!-- long legs + home slippers -->
+        <rect x="46" y="104" width="7" height="43" rx="3.5" fill="#ffe1c9"/>
+        <rect x="59" y="104" width="7" height="43" rx="3.5" fill="#ffe1c9"/>
+        <ellipse cx="49" cy="148.5" rx="6.5" ry="3" fill="#ff8fab"/>
+        <ellipse cx="63" cy="148.5" rx="6.5" ry="3" fill="#ff8fab"/>
+        <!-- black sporty shorts with white side stripes -->
+        <path d="M40,88 L72,88 L74.5,109 L58.5,110 L56,99 L53.5,110 L37.5,109 Z" fill="#1f1f22"/>
+        <path d="M41.2,91 L39.2,108 M43,91 L41.1,108.2 M44.8,91 L43,108.4 M70.8,91 L72.8,108 M69,91 L70.9,108.2 M67.2,91 L69,108.4" stroke="#ffffff" stroke-width="0.9"/>
+        <!-- hanging arm -->
+        <line x1="36" y1="74" x2="35" y2="93" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
+        <!-- loose white shirt -->
+        <path d="M43,58 L31,72 L38.5,78 L45,69 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M43,58 Q56,52 69,58 L75,94 Q56,99 37,94 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M45.5,67 Q46.5,81 44.5,93 M66.5,67 Q65.5,81 67.5,93" stroke="#ece6dc" stroke-width="1" fill="none"/>
+        <path d="M50,54.5 L54.5,62 L49.5,61 Z M62,54.5 L57.5,62 L62.5,61 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1" stroke-linejoin="round"/>
+        <circle cx="56" cy="70" r="0.9" fill="#cfc6b8"/>
+        <circle cx="56" cy="78" r="0.9" fill="#cfc6b8"/>
+        <circle cx="56" cy="86" r="0.9" fill="#cfc6b8"/>
+        <!-- waving arm -->
+        <g class="arm-wave">
+          <line x1="77.5" y1="54" x2="78.6" y2="40" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
+          <circle cx="78.8" cy="38" r="3.6" fill="#ffe1c9"/>
+          <path d="M67,58 L75.5,50.5 L81,57 L71,66 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1.2" stroke-linejoin="round"/>
+        </g>
+      </g>
+      <!-- cat -->
+      <g class="cat">
+        <path class="cat-tail" d="M106,150 Q121,147 117,131" stroke="#f0a04b" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <ellipse cx="98" cy="146" rx="12" ry="10" fill="#f0a04b"/>
+        <path d="M89,125 L90,114 L96,121 Z M107,125 L106,114 L100,121 Z" fill="#f0a04b"/>
+        <circle cx="98" cy="128" r="9" fill="#f0a04b"/>
+        <path d="M91,124 L91.6,117 L95,121 Z M105,124 L104.4,117 L101,121 Z" fill="#ffc7a8"/>
+        <ellipse cx="94.8" cy="128" rx="1.3" ry="1.7" fill="#2b1a12"/>
+        <ellipse cx="101.2" cy="128" rx="1.3" ry="1.7" fill="#2b1a12"/>
+        <path d="M97,131 L99,131 L98,132.3 Z" fill="#e8708a"/>
+        <path d="M93,140 Q98,138 103,140" stroke="#d9822f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </header>
+
+  <form id="form" novalidate autocomplete="off">
+    <div class="field">
+      <label for="can">🥫 1. 罐頭重量 (公克)</label>
+      <div class="row">
+        <input id="can" class="num" type="text" inputmode="decimal" enterkeyhint="next"
+               placeholder="例如 85" data-int="5" data-dec="2">
+        <button type="button" class="zero" data-zero="can" aria-label="罐頭重量填入 0">0</button>
+      </div>
+    </div>
+
+    <fieldset class="field">
+      <legend>🔥 2. 罐頭每公克熱量 (大卡/克)</legend>
+      <div class="radios" role="radiogroup">
+        <label class="radio"><input type="radio" name="dens" value="custom"><span>自訂</span></label>
+        <label class="radio"><input type="radio" name="dens" value="0.85" checked><span>0.85</span></label>
+        <label class="radio"><input type="radio" name="dens" value="0.966"><span>0.966</span></label>
+      </div>
+      <input id="density" class="num" type="text" inputmode="decimal" enterkeyhint="next"
+             placeholder="輸入每公克熱量，例如 1.05" aria-label="每公克熱量 (大卡/克)"
+             data-int="2" data-dec="3" disabled value="0.85">
+    </fieldset>
+
+    <div class="field">
+      <label for="water">💧 3. 加入的水量 (公克/ml)<span class="optional">選擇性</span></label>
+      <div class="row">
+        <input id="water" class="num" type="text" inputmode="decimal" enterkeyhint="next"
+               placeholder="沒加水可留空" data-int="5" data-dec="2">
+        <button type="button" class="zero" data-zero="water" aria-label="加入的水量填入 0">0</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="left">🍽️ 4. 總共剩下 (公克)<span class="optional">選擇性</span></label>
+      <div class="row">
+        <input id="left" class="num" type="text" inputmode="decimal" enterkeyhint="done"
+               placeholder="吃光光可留空" data-int="5" data-dec="2">
+        <button type="button" class="zero" data-zero="left" aria-label="總共剩下填入 0">0</button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-calc">🧮 計算熱量</button>
+    <button type="button" class="btn btn-reset" id="resetBtn">🔄 重置</button>
+  </form>
+
+  <section id="error" class="box error" hidden role="alert"></section>
+
+  <section id="result" class="box result" hidden aria-live="polite">
+    <div class="label">🐱 貓咪攝取熱量</div>
+    <div class="big"><span id="kcal">0.00</span><small>大卡</small></div>
+    <div class="sub" id="resultSub"></div>
+    <p class="stale-note">✏️ 數字有變更，請再按一次「計算熱量」</p>
+    <div class="steps-title">📊 計算過程：</div>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section id="prev" class="box prev" hidden>
+    <div class="label">📋 上一筆計算</div>
+    <div class="time" id="prevTime"></div>
+    <div class="big"><span id="prevKcal">0.00</span><small>大卡</small></div>
+    <div class="sub" id="prevSub"></div>
+    <div class="steps-title">📊 計算過程：</div>
+    <ol class="steps" id="prevSteps"></ol>
+    <div class="box-actions"><button type="button" class="link-btn" id="clearHistory">清除紀錄</button></div>
+  </section>
+
+  <footer>
+    所有數字都可以輸入到小數點後兩位，結果也算到小數點後兩位（四捨五入）。<br>
+    紀錄只存在這支手機的瀏覽器裡。
+  </footer>
+</main>
+
+  <!-- After each calculation one of our five cats peeks up and says 媽咪我愛你 -->
+  <div id="catPop" class="cat-pop" aria-hidden="true">
+    <div class="bubble">媽咪我愛你 <span class="heart">❤️</span></div>
+    <svg class="cat-face" data-cat="white-chinchilla" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 Q17,22 40,32 Z M80,46 Q83,22 60,32 Z" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M24,41 Q23,28 35,33 Z M76,41 Q77,28 65,33 Z" fill="#f4c6c6"/>
+        <path d="M50.0,30.0 Q55.9,26.1 60.4,31.2 Q67.1,28.9 70.0,34.8 Q77.0,34.2 78.0,40.4 Q84.7,41.5 83.7,47.5 Q89.5,50.4 86.6,55.7 Q91.2,60.0 86.6,64.3 Q89.5,69.6 83.7,72.5 Q84.7,78.5 78.0,79.6 Q77.0,85.8 70.0,85.2 Q67.1,91.1 60.4,88.8 Q55.9,93.9 50.0,90.0 Q44.1,93.9 39.6,88.8 Q32.9,91.1 30.0,85.2 Q23.0,85.8 22.0,79.6 Q15.3,78.5 16.3,72.5 Q10.5,69.6 13.4,64.3 Q8.8,60.0 13.4,55.7 Q10.5,50.4 16.3,47.5 Q15.3,41.5 22.0,40.4 Q23.0,34.2 30.0,34.8 Q32.9,28.9 39.6,31.2 Q44.1,26.1 50.0,30.0 Z" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.4" stroke-linejoin="round"/>
+        <ellipse cx="37" cy="57" rx="7.6" ry="7.8" fill="#9c7d3c" stroke="#2f2a26" stroke-width="1.7"/>
+        <ellipse cx="37" cy="57.4" rx="3.6" ry="5.4" fill="#1b1816"/>
+        <circle cx="39" cy="54.2" r="1.8" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="7.6" ry="7.8" fill="#9c7d3c" stroke="#2f2a26" stroke-width="1.7"/>
+        <ellipse cx="63" cy="57.4" rx="3.6" ry="5.4" fill="#1b1816"/>
+        <circle cx="65" cy="54.2" r="1.8" fill="#ffffff"/>
+        <path d="M47.6,64.2 L52.4,64.2 L50,67.2 Z" fill="#e8a0a8"/>
+        <path d="M50,67.2 Q48,70.4 45.6,69.2 M50,67.2 Q52,70.4 54.4,69.2" stroke="#c9a9a0" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <path d="M33,66 L9,62 M33,69 L9,71 M67,66 L91,62 M67,69 L91,71" stroke="#d8d0c4" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d9d2c8" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="orange-chinchilla" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 Q17,22 40,32 Z M80,46 Q83,22 60,32 Z" fill="#eaa55a" stroke="#c9803a" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M24,41 Q23,28 35,33 Z M76,41 Q77,28 65,33 Z" fill="#f4c6c6"/>
+        <path d="M50.0,30.0 Q55.9,26.1 60.4,31.2 Q67.1,28.9 70.0,34.8 Q77.0,34.2 78.0,40.4 Q84.7,41.5 83.7,47.5 Q89.5,50.4 86.6,55.7 Q91.2,60.0 86.6,64.3 Q89.5,69.6 83.7,72.5 Q84.7,78.5 78.0,79.6 Q77.0,85.8 70.0,85.2 Q67.1,91.1 60.4,88.8 Q55.9,93.9 50.0,90.0 Q44.1,93.9 39.6,88.8 Q32.9,91.1 30.0,85.2 Q23.0,85.8 22.0,79.6 Q15.3,78.5 16.3,72.5 Q10.5,69.6 13.4,64.3 Q8.8,60.0 13.4,55.7 Q10.5,50.4 16.3,47.5 Q15.3,41.5 22.0,40.4 Q23.0,34.2 30.0,34.8 Q32.9,28.9 39.6,31.2 Q44.1,26.1 50.0,30.0 Z" fill="#eaa55a" stroke="#c9803a" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M44,34 L45,40 M50,32 L50,39 M56,34 L55,40 M28,48 Q24,50 20,49 M72,48 Q76,50 80,49" stroke="#cf8740" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+        <ellipse cx="50" cy="72" rx="13.5" ry="9.5" fill="#fdf8f0"/>
+        <path d="M47.5,64 Q50,56 52.5,64 Z" fill="#fdf8f0"/>
+        <ellipse cx="50" cy="81" rx="11" ry="6.5" fill="#fdf8f0"/>
+        <ellipse cx="37" cy="57" rx="7.4" ry="7.6" fill="#b98c3c" stroke="#4a2e1a" stroke-width="1.7"/>
+        <ellipse cx="37" cy="57.4" rx="3.6" ry="5.2" fill="#1b1816"/>
+        <circle cx="39" cy="54.2" r="1.8" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="7.4" ry="7.6" fill="#b98c3c" stroke="#4a2e1a" stroke-width="1.7"/>
+        <ellipse cx="63" cy="57.4" rx="3.6" ry="5.2" fill="#1b1816"/>
+        <circle cx="65" cy="54.2" r="1.8" fill="#ffffff"/>
+        <path d="M46.8,64.5 L53.2,64.5 L50,68.3 Z" fill="#e7959d"/>
+        <path d="M50,68.3 Q47.5,72 44.5,70.6 M50,68.3 Q52.5,72 55.5,70.6" stroke="#b07a5a" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <path d="M37,68 L9,64 M37,71 L9,73 M63,68 L91,64 M63,71 L91,73" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#eaa55a" stroke="#c9803a" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#eaa55a" stroke="#c9803a" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#c9803a" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="tabby-mask" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 L22,15 L44,33 Z M80,46 L78,15 L56,33 Z" fill="#9a8670"/>
+        <path d="M25,39 L26,22 L38,33 Z M75,39 L74,22 L62,33 Z" fill="#f1c4c0"/>
+        <clipPath id="catClipA"><ellipse cx="50" cy="60" rx="36" ry="30"/></clipPath>
+        <g clip-path="url(#catClipA)">
+          <rect x="0" y="0" width="100" height="100" fill="#9a8670"/>
+          <ellipse cx="50" cy="59" rx="4" ry="6" fill="#c8955f" opacity="0.75"/>
+          <path d="M44,30 L45.5,40 M50,29 L50,41 M56,30 L54.5,40 M37,41 L41.5,47 L46,42 L50,48 L54,42 L58.5,47 L63,41 M28,57 Q21,60 14,56 M72,57 Q79,60 86,56 M16,65 Q23,63 30,66 M84,65 Q77,63 70,66 M20,46 Q25,47 28,50 M80,46 Q75,47 72,50" stroke="#3d332a" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="44" cy="71" rx="8.5" ry="6.2" fill="#fbf8f3"/>
+          <ellipse cx="56" cy="71" rx="8.5" ry="6.2" fill="#fbf8f3"/>
+          <path d="M8,82 Q30,74 40,75 Q50,79 60,75 Q70,74 92,82 L92,100 L8,100 Z" fill="#fbf8f3"/>
+        </g>
+        <ellipse cx="37" cy="55.5" rx="8.6" ry="9.0" fill="#efe6d8"/>
+        <ellipse cx="37" cy="55.5" rx="7" ry="7.4" fill="#b9c07a"/>
+        <ellipse cx="37" cy="55.9" rx="3.8" ry="5.2" fill="#1b1816"/>
+        <circle cx="38.9" cy="52.9" r="1.7" fill="#ffffff"/>
+        <ellipse cx="63" cy="55.5" rx="8.6" ry="9.0" fill="#efe6d8"/>
+        <ellipse cx="63" cy="55.5" rx="7" ry="7.4" fill="#b9c07a"/>
+        <ellipse cx="63" cy="55.9" rx="3.8" ry="5.2" fill="#1b1816"/>
+        <circle cx="64.9" cy="52.9" r="1.7" fill="#ffffff"/>
+        <path d="M46.3,64 L53.7,64 L50,68.3 Z" fill="#e8a3a0" stroke="#6b4a40" stroke-width="0.9" stroke-linejoin="round"/>
+        <path d="M50,68.3 Q47,72.5 43.5,70.8 M50,68.3 Q53,72.5 56.5,70.8" stroke="#7a6a5e" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <path d="M37,69 L9,64 M37,72 L9,74 M63,69 L91,64 M63,72 L91,74" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d8cbb8" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="tabby-bangs" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 L22,15 L44,33 Z M80,46 L78,15 L56,33 Z" fill="#8d7257"/>
+        <path d="M25,39 L26,22 L38,33 Z M75,39 L74,22 L62,33 Z" fill="#f1c4c0"/>
+        <clipPath id="catClipB"><ellipse cx="50" cy="60" rx="36" ry="30"/></clipPath>
+        <g clip-path="url(#catClipB)">
+          <rect x="0" y="0" width="100" height="100" fill="#fbf8f3"/>
+          <path d="M8,18 L92,18 L92,66 Q82,62 72,63.5 Q64,64.5 58,60 L42,60 Q36,64.5 28,63.5 Q18,62 8,66 Z" fill="#8d7257"/>
+          <path d="M45.5,66 L47,52 Q45,43 40.5,37 Q46,34.5 50,34.5 Q54,34.5 59.5,37 Q55,43 53,52 L54.5,66 Z" fill="#fbf8f3"/>
+          <path d="M41,33 L59,33 L53.5,38 L50,43 L46.5,38 Z" fill="#8d7257"/>
+          <path d="M44,22 L45,31 M50,20 L50,31 M56,22 L55,31 M38,26 L40,33 M62,26 L60,33 M27,50 Q22,49 16,52 M73,50 Q78,49 84,52 M29,59.5 Q23,61.5 17,60 M71,59.5 Q77,61.5 83,60" stroke="#43362a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        </g>
+        <ellipse cx="50" cy="60" rx="36" ry="30" fill="none" stroke="#ddd2c2" stroke-width="1.4"/>
+        <ellipse cx="37" cy="56" rx="6.4" ry="6.8" fill="#c9cd78" stroke="#3a2f25" stroke-width="1.3"/>
+        <ellipse cx="37" cy="56.4" rx="2.6" ry="5" fill="#1b1816"/>
+        <circle cx="38.9" cy="53.4" r="1.7" fill="#ffffff"/>
+        <ellipse cx="63" cy="56" rx="6.4" ry="6.8" fill="#c9cd78" stroke="#3a2f25" stroke-width="1.3"/>
+        <ellipse cx="63" cy="56.4" rx="2.6" ry="5" fill="#1b1816"/>
+        <circle cx="64.9" cy="53.4" r="1.7" fill="#ffffff"/>
+        <path d="M46.3,64.5 L53.7,64.5 L50,68.8 Z" fill="#d99a86" stroke="#8a5a4e" stroke-width="0.9" stroke-linejoin="round"/>
+        <path d="M50,68.8 Q47,73 43.5,71.3 M50,68.8 Q53,73 56.5,71.3" stroke="#9a8a7c" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <path d="M35,69 L9,65 M35,72 L9,74 M65,69 L91,65 M65,72 L91,74" stroke="#d6cdc0" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d8cbb8" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="american-shorthair" viewBox="0 0 100 104" focusable="false">
+        <clipPath id="catClipC"><ellipse cx="50" cy="60" rx="36" ry="30"/></clipPath>
+        <g clip-path="url(#catClipC)">
+          <rect x="0" y="0" width="100" height="100" fill="#e6e6e9"/>
+          <ellipse cx="50" cy="73" rx="15" ry="10" fill="#fbfbfc"/>
+          <path d="M50,31 L50,44 M44,31 L45,43 M56,31 L55,43 M37,43 L41,49 L45,44 L50,50 L55,44 L59,49 L63,43 M29,60 Q22,62 15,58 M71,60 Q78,62 85,58 M17,68 Q24,66 30,70 M83,68 Q76,66 70,70 M20,47 Q25,48 28,52 M80,47 Q75,48 72,52" stroke="#2f2f35" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <ellipse cx="50" cy="60" rx="36" ry="30" fill="none" stroke="#b9bcc2" stroke-width="1.3"/>
+        <path d="M21,42 Q19,27 34,26 Q42,30 37,39 Q29,37 21,42 Z M79,42 Q81,27 66,26 Q58,30 63,39 Q71,37 79,42 Z" fill="#e6e6e9" stroke="#9a9ca4" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M23,40 Q28,36 35,37.5 M77,40 Q72,36 65,37.5" stroke="#f1b8b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M27,30 L30,35 M32,28 L34,33 M73,30 L70,35 M68,28 L66,33" stroke="#2f2f35" stroke-width="1.6" stroke-linecap="round"/>
+        <ellipse cx="37" cy="57" rx="7.6" ry="8" fill="#e2c449" stroke="#2b2b2b" stroke-width="1.5"/>
+        <ellipse cx="37" cy="57.4" rx="3.9" ry="5.6" fill="#1b1816"/>
+        <circle cx="39" cy="54.2" r="1.8" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="7.6" ry="8" fill="#e2c449" stroke="#2b2b2b" stroke-width="1.5"/>
+        <ellipse cx="63" cy="57.4" rx="3.9" ry="5.6" fill="#1b1816"/>
+        <circle cx="65" cy="54.2" r="1.8" fill="#ffffff"/>
+        <path d="M46.5,65 L53.5,65 L50,69 Z" fill="#e9a183" stroke="#b0705a" stroke-width="0.8" stroke-linejoin="round"/>
+        <path d="M50,69 Q47,73.5 43.5,71.5 M50,69 Q53,73.5 56.5,71.5" stroke="#6a6a72" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <path d="M36,69 L9,64 M36,72 L9,74 M64,69 L91,64 M64,72 L91,74" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#e6e6e9" stroke="#9a9ca4" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#e6e6e9" stroke="#9a9ca4" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#9a9ca4" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'catKcalCalc.v1';
+  var MAX_RECORDS = 10;
+  var PRESETS = { '0.85': '0.85', '0.966': '0.966' };
+
+  function $(id) { return document.getElementById(id); }
+
+  var form = $('form');
+  var inputs = { can: $('can'), water: $('water'), left: $('left'), density: $('density') };
+  var densRadios = Array.prototype.slice.call(document.querySelectorAll('input[name="dens"]'));
+  var resultBox = $('result');
+  var errorBox = $('error');
+  var prevBox = $('prev');
+
+  // ------------------------------------------------------------------
+  // State (persisted to localStorage so a reloaded tab keeps everything)
+  // ------------------------------------------------------------------
+  var state = {
+    records: [],          // newest first: { t, in: {can, water, left, density}, out: {...} }
+    showingCurrent: false,
+    draft: { can: '', water: '', left: '', dens: '0.85', custom: '' }
+  };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data && Array.isArray(data.records)) state.records = data.records.filter(isValidRecord);
+      if (data && data.draft && typeof data.draft === 'object') {
+        var d = data.draft;
+        ['can', 'water', 'left', 'custom'].forEach(function (k) {
+          if (typeof d[k] === 'string') state.draft[k] = d[k];
+        });
+        if (d.dens === 'custom' || PRESETS[d.dens]) state.draft.dens = d.dens;
+      }
+    } catch (e) { /* storage unavailable: start fresh */ }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ records: state.records, draft: state.draft }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function isValidRecord(r) {
+    return r && typeof r.t === 'number' && r.in && r.out &&
+      ['can', 'water', 'left', 'density'].every(function (k) { return Number.isInteger(r.in[k]); }) &&
+      ['total', 'eaten', 'eatenCan', 'kcal'].every(function (k) { return Number.isInteger(r.out[k]); });
+  }
+
+  // ------------------------------------------------------------------
+  // Number helpers. All maths is done on integers (fixed point) so we
+  // never get floating-point surprises like 0.1 + 0.2 = 0.30000000000000004.
+  //   weights  -> hundredths of a gram   (10.5 g   -> 1050)
+  //   density  -> thousandths of kcal/g  (0.966    -> 966)
+  //   kcal     -> hundredths of a kcal   (6.38     -> 638)
+  // ------------------------------------------------------------------
+
+  // Keep only digits and one decimal point, limited decimals / integer digits.
+  function sanitize(raw, maxInt, maxDec) {
+    var s = String(raw)
+      .replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/[,，。．،٫]/g, '.')
+      .replace(/[^\d.]/g, '');
+    var dot = s.indexOf('.');
+    var intPart = dot === -1 ? s : s.slice(0, dot);
+    var decPart = dot === -1 ? null : s.slice(dot + 1).replace(/\./g, '').slice(0, maxDec);
+    intPart = intPart.replace(/^0+(?=\d)/, '').slice(0, maxInt);
+    if (decPart !== null && intPart === '') intPart = '0';
+    return decPart === null ? intPart : intPart + '.' + decPart;
+  }
+
+  // "10.5" (dec=2) -> 1050 ; "" -> null
+  function toFixedInt(str, dec) {
+    if (str === '' || str == null) return null;
+    var parts = str.split('.');
+    var i = parts[0] || '0';
+    var f = ((parts[1] || '') + '0000').slice(0, dec);
+    return Number(i) * Math.pow(10, dec) + Number(f);
+  }
+
+  // 1050 (dec=2) -> "10.50"
+  function fmt(n, dec) {
+    var base = Math.pow(10, dec);
+    var sign = n < 0 ? '-' : '';
+    n = Math.abs(n);
+    var f = String(n % base);
+    while (f.length < dec) f = '0' + f;
+    return sign + Math.floor(n / base) + '.' + f;
+  }
+
+  // density thousandths -> "0.85" / "0.966" / "1.00"
+  function fmtDensity(th) {
+    return th % 10 === 0 ? fmt(th / 10, 2) : fmt(th, 3);
+  }
+
+  // Integer division a / b rounded half-up (a >= 0, b > 0).
+  function roundDiv(a, b) {
+    var q = Math.floor(a / b);
+    var r = a - q * b;
+    while (r < 0) { q -= 1; r += b; }
+    while (r >= b) { q += 1; r -= b; }
+    if (2 * r >= b) q += 1;
+    return q;
+  }
+
+  // ------------------------------------------------------------------
+  // The calculation
+  //   總重量   = 罐頭 + 水
+  //   吃掉重量 = 總重量 - 剩下
+  //   罐頭佔比 = 罐頭 ÷ 總重量                   (水和罐頭是均勻混合的)
+  //   吃掉罐頭 = 罐頭佔比 × 吃掉重量
+  //   攝取熱量 = 吃掉罐頭 × 每公克熱量
+  // Every step is rounded to 2 decimals (罐頭佔比 to 2 decimals of a
+  // percent, e.g. 83.33%), and the rounded value is what the next step
+  // uses, so each line of the shown formula can be checked by hand.
+  // ------------------------------------------------------------------
+  function canPercent(can, total) {  // hundredths of a percent: 83.33% -> 8333
+    return total === 0 ? 0 : roundDiv(can * 10000, total);
+  }
+
+  function compute(v) {
+    var total = v.can + v.water;
+    var eaten = total - v.left;
+    var pct = canPercent(v.can, total);
+    var eatenCan = roundDiv(eaten * pct, 10000);
+    var kcal = roundDiv(eatenCan * v.density, 1000);
+    return { total: total, eaten: eaten, pct: pct, eatenCan: eatenCan, eatenWater: eaten - eatenCan, kcal: kcal };
+  }
+
+  function pctOf(rec) {
+    return Number.isInteger(rec.out.pct) ? rec.out.pct : canPercent(rec.in.can, rec.out.total);
+  }
+
+  function readDensityString() {
+    var choice = currentDensChoice();
+    return choice === 'custom' ? inputs.density.value : PRESETS[choice];
+  }
+
+  function currentDensChoice() {
+    for (var i = 0; i < densRadios.length; i++) if (densRadios[i].checked) return densRadios[i].value;
+    return '0.85';
+  }
+
+  function validate() {
+    clearInvalid();
+    var can = toFixedInt(inputs.can.value, 2);
+    var density = toFixedInt(readDensityString(), 3);
+    var water = toFixedInt(inputs.water.value, 2);
+    var left = toFixedInt(inputs.left.value, 2);
+    if (water === null) water = 0;
+    if (left === null) left = 0;
+
+    if (can === null) return fail('請先輸入「1. 罐頭重量」喔！', inputs.can);
+    if (density === null) return fail('請輸入「2. 罐頭每公克熱量」喔！', inputs.density);
+    if (can + water === 0) return fail('罐頭＋水的總重量是 0，沒辦法計算喔！', inputs.can);
+    if (left > can + water) {
+      return fail('剩下的重量（' + fmt(left, 2) + 'g）不能比總重量（' +
+        fmt(can + water, 2) + 'g）還多喔！', inputs.left);
+    }
+    return { ok: true, values: { can: can, water: water, left: left, density: density } };
+  }
+
+  function fail(msg, el) {
+    if (el) el.classList.add('invalid');
+    return { ok: false, msg: msg };
+  }
+
+  function clearInvalid() {
+    Object.keys(inputs).forEach(function (k) { inputs[k].classList.remove('invalid'); });
+  }
+
+  // ------------------------------------------------------------------
+  // Rendering
+  // ------------------------------------------------------------------
+  function g(n) { return fmt(n, 2) + 'g'; }
+  function pc(n) { return fmt(n, 2) + '%'; }
+
+  // name: step title, how: the general formula, lhs/rhs: the numbers.
+  // Each chunk is kept on one line, so on a narrow phone the line only
+  // breaks before "=" instead of in the middle of a number.
+  function stepHTML(name, how, lhs, rhs, extra) {
+    return '<li' + (extra ? ' class="extra"' : '') + '>' +
+      '<span class="step-name"><span class="nw">' + name + '</span> <span class="nw how">' + how + '</span></span>' +
+      '<span class="eq"><span class="nw">' + lhs + '</span> <span class="nw">= <b>' + rhs + '</b></span></span></li>';
+  }
+
+  function subHTML(o) {
+    return '<span class="nw">吃掉罐頭 ' + g(o.eatenCan) + '</span><span class="nw">（共吃掉 ' + g(o.eaten) + '）</span>';
+  }
+
+  // Formula steps for a record; used by both the current result and "上一筆".
+  function stepsHTML(rec) {
+    var v = rec.in, o = rec.out;
+    var html = '';
+    html += stepHTML('① 總重量', '= 罐頭 + 水',
+      g(v.can) + ' + ' + g(v.water), g(o.total));
+    html += stepHTML('② 吃掉重量', '= 總重量 − 剩下',
+      g(o.total) + ' − ' + g(v.left), g(o.eaten));
+    var pct = pctOf(rec);
+    html += stepHTML('③ 罐頭佔比', '= 罐頭 ÷ 總重量',
+      g(v.can) + ' ÷ ' + g(o.total), pc(pct));
+    html += stepHTML('④ 吃掉罐頭', '= 罐頭佔比 × 吃掉重量',
+      pc(pct) + ' × ' + g(o.eaten), g(o.eatenCan));
+    html += stepHTML('⑤ 攝取熱量', '= 吃掉罐頭 × 每公克熱量',
+      g(o.eatenCan) + ' × ' + fmtDensity(v.density), fmt(o.kcal, 2) + ' 大卡');
+    if (v.water > 0) {
+      html += stepHTML('💧 順便算：喝到的水', '= 吃掉重量 − 吃掉罐頭',
+        g(o.eaten) + ' − ' + g(o.eatenCan), g(o.eaten - o.eatenCan), true);
+    }
+    return html;
+  }
+
+  function renderResult(rec) {
+    $('kcal').textContent = fmt(rec.out.kcal, 2);
+    $('resultSub').innerHTML = subHTML(rec.out);
+    $('steps').innerHTML = stepsHTML(rec);
+    resultBox.classList.remove('stale');
+    resultBox.hidden = false;
+  }
+
+  function formatTime(t) {
+    var d = new Date(t);
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  function renderPrev() {
+    // While a fresh result is on screen, records[0] IS that result,
+    // so "上一筆" must be records[1]. Otherwise it's records[0].
+    var rec = state.records[state.showingCurrent ? 1 : 0];
+    if (!rec) { prevBox.hidden = true; return; }
+    $('prevTime').textContent = formatTime(rec.t);
+    $('prevKcal').textContent = fmt(rec.out.kcal, 2);
+    $('prevSub').innerHTML = subHTML(rec.out);
+    $('prevSteps').innerHTML = stepsHTML(rec);
+    prevBox.hidden = false;
+  }
+
+  function sameInputs(a, b) {
+    return a.can === b.can && a.water === b.water && a.left === b.left && a.density === b.density;
+  }
+
+  // ------------------------------------------------------------------
+  // Actions
+  // ------------------------------------------------------------------
+  function calculate() {
+    var check = validate();
+    if (!check.ok) {
+      errorBox.textContent = '⚠️ ' + check.msg;
+      errorBox.hidden = false;
+      resultBox.hidden = true;
+      state.showingCurrent = false;
+      renderPrev();
+      errorBox.scrollIntoView({ behavior: smoothOrAuto(), block: 'center' });
+      return;
+    }
+    errorBox.hidden = true;
+
+    var rec = { t: Date.now(), in: check.values, out: compute(check.values) };
+    var latest = state.records[0];
+    if (latest && sameInputs(latest.in, rec.in)) {
+      // Same numbers as the last calculation (e.g. tapped the button twice):
+      // don't push a duplicate, otherwise "上一筆" would equal this one.
+      rec = latest;
+    } else {
+      state.records.unshift(rec);
+      state.records = state.records.slice(0, MAX_RECORDS);
+    }
+    state.showingCurrent = true;
+    save();
+
+    renderResult(rec);
+    renderPrev();
+    cheer();
+    catLove();
+
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    resultBox.scrollIntoView({ behavior: smoothOrAuto(), block: 'start' });
+  }
+
+  function reset() {
+    inputs.can.value = '';
+    inputs.water.value = '';
+    inputs.left.value = '';
+    clearInvalid();
+    errorBox.hidden = true;
+    resultBox.hidden = true;
+    state.showingCurrent = false;   // the result just shown now becomes "上一筆"
+    saveDraft();
+    renderPrev();
+    window.scrollTo({ top: 0, behavior: smoothOrAuto() });
+    inputs.can.focus({ preventScroll: true });
+  }
+
+  function smoothOrAuto() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
+  function saveDraft() {
+    state.draft.can = inputs.can.value;
+    state.draft.water = inputs.water.value;
+    state.draft.left = inputs.left.value;
+    state.draft.dens = currentDensChoice();
+    if (state.draft.dens === 'custom') state.draft.custom = inputs.density.value;
+    save();
+  }
+
+  function markStale() {
+    if (!resultBox.hidden) resultBox.classList.add('stale');
+    if (!errorBox.hidden) errorBox.hidden = true;
+  }
+
+  function applyDensityChoice(choice, focus) {
+    densRadios.forEach(function (r) { r.checked = r.value === choice; });
+    if (choice === 'custom') {
+      inputs.density.disabled = false;
+      inputs.density.value = state.draft.custom;
+      if (focus) inputs.density.focus();
+    } else {
+      inputs.density.disabled = true;
+      inputs.density.value = PRESETS[choice];
+      inputs.density.classList.remove('invalid');
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Wiring
+  // ------------------------------------------------------------------
+  Object.keys(inputs).forEach(function (key) {
+    var el = inputs[key];
+    var maxInt = Number(el.getAttribute('data-int'));
+    var maxDec = Number(el.getAttribute('data-dec'));
+    el.addEventListener('input', function () {
+      var raw = el.value;
+      var clean = sanitize(raw, maxInt, maxDec);
+      if (clean !== raw) {
+        var fromEnd = raw.length - (el.selectionEnd == null ? raw.length : el.selectionEnd);
+        el.value = clean;
+        var pos = Math.max(0, clean.length - fromEnd);
+        try { el.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
+      }
+      el.classList.remove('invalid');
+      saveDraft();
+      markStale();
+    });
+  });
+
+  // Enter / "next" on the keypad moves to the next box; on the last box it calculates.
+  var order = ['can', 'density', 'water', 'left'];
+  order.forEach(function (key, idx) {
+    inputs[key].addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      for (var j = idx + 1; j < order.length; j++) {
+        var next = inputs[order[j]];
+        if (!next.disabled) { next.focus(); return; }
+      }
+      calculate();
+    });
+  });
+
+  document.querySelectorAll('[data-zero]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var el = inputs[btn.getAttribute('data-zero')];
+      el.value = '0';
+      el.classList.remove('invalid');
+      saveDraft();
+      markStale();
+    });
+  });
+
+  densRadios.forEach(function (r) {
+    r.addEventListener('change', function () {
+      if (!r.checked) return;
+      applyDensityChoice(r.value, true);
+      saveDraft();
+      markStale();
+    });
+  });
+
+  var figure = $('figure');
+  function cheer() {
+    figure.classList.remove('play');
+    void figure.getBoundingClientRect();   // restart the CSS animation
+    figure.classList.add('play');
+  }
+  figure.addEventListener('click', cheer);
+
+  // One of the five cats says 媽咪我愛你, never the same cat twice in a row.
+  var catPop = $('catPop');
+  var catFaces = catPop.querySelectorAll('.cat-face');
+  var lastCat = -1;
+  function catLove() {
+    var i;
+    do { i = Math.floor(Math.random() * catFaces.length); } while (catFaces.length > 1 && i === lastCat);
+    lastCat = i;
+    for (var k = 0; k < catFaces.length; k++) catFaces[k].classList.toggle('on', k === i);
+    catPop.classList.remove('show');
+    void catPop.getBoundingClientRect();
+    catPop.classList.add('show');
+  }
+  catPop.addEventListener('animationend', function (e) {
+    if (e.target === catPop) catPop.classList.remove('show');
+  });
+
+  form.addEventListener('submit', function (e) { e.preventDefault(); calculate(); });
+  $('resetBtn').addEventListener('click', reset);
+  $('clearHistory').addEventListener('click', function () {
+    if (!window.confirm('要清除所有計算紀錄嗎？')) return;
+    state.records = state.showingCurrent ? state.records.slice(0, 1) : [];
+    save();
+    renderPrev();
+  });
+
+  // ------------------------------------------------------------------
+  // Init
+  // ------------------------------------------------------------------
+  load();
+  inputs.can.value = sanitize(state.draft.can, 5, 2);
+  inputs.water.value = sanitize(state.draft.water, 5, 2);
+  inputs.left.value = sanitize(state.draft.left, 5, 2);
+  state.draft.custom = sanitize(state.draft.custom, 2, 3);
+  applyDensityChoice(state.draft.dens, false);
+  renderPrev();
+})();
+</script>
+</body>
+</html>
