@@ -131,7 +131,7 @@
   }
   .figure * { transform-box: view-box; }
   .figure .ponytail { transform-origin: 39px 21px; }
-  .figure .arm-wave { transform-origin: 66px 62px; }
+  .figure .arm-wave { transform-origin: 68px 61px; }
   .figure .cat-tail { transform-origin: 106px 150px; }
   .figure .girl { transform-origin: 56px 150px; }
   .figure.play .girl { animation: hop 0.5s ease-out 1 both; }
@@ -307,6 +307,57 @@
 
   footer { margin-top: 22px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); line-height: 1.6; }
 
+  /* ---------- cat pop-up: 媽咪我愛你 (never blocks taps) ---------- */
+  .cat-pop {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    z-index: 50;
+    width: 150px;
+    margin-left: -75px;
+    padding-bottom: env(safe-area-inset-bottom);
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(115%);
+  }
+  .cat-pop.show { visibility: visible; animation: peek 3s cubic-bezier(.22, .9, .32, 1.15) both; }
+  .cat-face { display: none; width: 150px; height: 156px; margin-bottom: -14px; filter: drop-shadow(0 -2px 6px rgba(120, 70, 20, 0.18)); }
+  .cat-face.on { display: block; }
+  .bubble {
+    position: absolute;
+    bottom: calc(146px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: #fff;
+    border: 3px solid #ffb3cb;
+    color: #e0457b;
+    font-size: 21px;
+    font-weight: 900;
+    box-shadow: 0 6px 16px rgba(224, 69, 123, 0.25);
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -11px;
+    margin-left: -9px;
+    border: 9px solid transparent;
+    border-top-color: #ffb3cb;
+    border-bottom: 0;
+  }
+  .cat-pop.show .heart { display: inline-block; animation: beat 0.6s ease-in-out 0.5s 3; }
+  @keyframes peek {
+    0% { transform: translateY(115%); }
+    14% { transform: translateY(-5%); }
+    20%, 84% { transform: translateY(0); }
+    100% { transform: translateY(115%); }
+  }
+  @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+  @keyframes fadepop { 0% { opacity: 0; } 10%, 85% { opacity: 1; } 100% { opacity: 0; } }
+
   @media (max-width: 360px) {
     .card { padding: 22px 12px 22px; border-radius: 28px; }
     .radio { padding: 6px 4px; font-size: 15px; gap: 4px; }
@@ -318,6 +369,8 @@
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
     .shine, .figure * { animation: none !important; }
+    .cat-pop.show { transform: none; animation-name: fadepop; animation-timing-function: linear; }
+    .cat-pop.show .heart { animation: none; }
     .shine { background-position: 0 0; }
   }
 </style>
@@ -347,21 +400,31 @@
         <circle cx="48" cy="43" r="2.4" fill="#ff8fab" opacity="0.6"/>
         <circle cx="64" cy="43" r="2.4" fill="#ff8fab" opacity="0.6"/>
         <path d="M52.5,44.2 Q56,47.8 59.5,44.2" stroke="#c4475a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-        <!-- neck + body -->
+        <!-- neck -->
         <rect x="53" y="48" width="6" height="8" fill="#ffe1c9"/>
-        <line x1="45" y1="63" x2="40" y2="90" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
-        <line x1="45" y1="62" x2="43.5" y2="71" stroke="#ff6f9f" stroke-width="7" stroke-linecap="round"/>
-        <rect x="47" y="90" width="8" height="58" rx="4" fill="#4f6fd1"/>
-        <rect x="57" y="90" width="8" height="58" rx="4" fill="#4f6fd1"/>
-        <ellipse cx="50" cy="149" rx="6.5" ry="3.2" fill="#5a3226"/>
-        <ellipse cx="62" cy="149" rx="6.5" ry="3.2" fill="#5a3226"/>
-        <path d="M44,61 Q56,52 68,61 L66,94 L46,94 Z" fill="#ff6f9f"/>
-        <path d="M46,88 L66,88" stroke="#ffffff" stroke-width="2" opacity="0.6"/>
+        <!-- long legs + home slippers -->
+        <rect x="46" y="104" width="7" height="43" rx="3.5" fill="#ffe1c9"/>
+        <rect x="59" y="104" width="7" height="43" rx="3.5" fill="#ffe1c9"/>
+        <ellipse cx="49" cy="148.5" rx="6.5" ry="3" fill="#ff8fab"/>
+        <ellipse cx="63" cy="148.5" rx="6.5" ry="3" fill="#ff8fab"/>
+        <!-- black sporty shorts with white side stripes -->
+        <path d="M40,88 L72,88 L74.5,109 L58.5,110 L56,99 L53.5,110 L37.5,109 Z" fill="#1f1f22"/>
+        <path d="M41.2,91 L39.2,108 M43,91 L41.1,108.2 M44.8,91 L43,108.4 M70.8,91 L72.8,108 M69,91 L70.9,108.2 M67.2,91 L69,108.4" stroke="#ffffff" stroke-width="0.9"/>
+        <!-- hanging arm -->
+        <line x1="36" y1="74" x2="35" y2="93" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
+        <!-- loose white shirt -->
+        <path d="M43,58 L31,72 L38.5,78 L45,69 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M43,58 Q56,52 69,58 L75,94 Q56,99 37,94 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M45.5,67 Q46.5,81 44.5,93 M66.5,67 Q65.5,81 67.5,93" stroke="#ece6dc" stroke-width="1" fill="none"/>
+        <path d="M50,54.5 L54.5,62 L49.5,61 Z M62,54.5 L57.5,62 L62.5,61 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1" stroke-linejoin="round"/>
+        <circle cx="56" cy="70" r="0.9" fill="#cfc6b8"/>
+        <circle cx="56" cy="78" r="0.9" fill="#cfc6b8"/>
+        <circle cx="56" cy="86" r="0.9" fill="#cfc6b8"/>
         <!-- waving arm -->
         <g class="arm-wave">
-          <line x1="66" y1="63" x2="77" y2="40" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
-          <line x1="66" y1="63" x2="69.5" y2="55" stroke="#ff6f9f" stroke-width="7" stroke-linecap="round"/>
-          <circle cx="78" cy="38" r="3.6" fill="#ffe1c9"/>
+          <line x1="77.5" y1="54" x2="78.6" y2="40" stroke="#ffe1c9" stroke-width="5.5" stroke-linecap="round"/>
+          <circle cx="78.8" cy="38" r="3.6" fill="#ffe1c9"/>
+          <path d="M67,58 L75.5,50.5 L81,57 L71,66 Z" fill="#ffffff" stroke="#d3ccc1" stroke-width="1.2" stroke-linejoin="round"/>
         </g>
       </g>
       <!-- cat -->
@@ -449,6 +512,114 @@
     紀錄只存在這支手機的瀏覽器裡。
   </footer>
 </main>
+
+  <!-- After each calculation one of our five cats peeks up and says 媽咪我愛你 -->
+  <div id="catPop" class="cat-pop" aria-hidden="true">
+    <div class="bubble">媽咪我愛你 <span class="heart">❤️</span></div>
+    <svg class="cat-face" data-cat="white-chinchilla" viewBox="0 0 100 104" focusable="false">
+        <path d="M19,46 Q16,20 41,32 Z M81,46 Q84,20 59,32 Z" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M23,41 Q22,27 35,33 Z M77,41 Q78,27 65,33 Z" fill="#f4b6b8"/>
+        <path d="M50.0,30.0 Q55.9,26.1 60.4,31.2 Q67.1,28.9 70.0,34.8 Q77.0,34.2 78.0,40.4 Q84.7,41.5 83.7,47.5 Q89.5,50.4 86.6,55.7 Q91.2,60.0 86.6,64.3 Q89.5,69.6 83.7,72.5 Q84.7,78.5 78.0,79.6 Q77.0,85.8 70.0,85.2 Q67.1,91.1 60.4,88.8 Q55.9,93.9 50.0,90.0 Q44.1,93.9 39.6,88.8 Q32.9,91.1 30.0,85.2 Q23.0,85.8 22.0,79.6 Q15.3,78.5 16.3,72.5 Q10.5,69.6 13.4,64.3 Q8.8,60.0 13.4,55.7 Q10.5,50.4 16.3,47.5 Q15.3,41.5 22.0,40.4 Q23.0,34.2 30.0,34.8 Q32.9,28.9 39.6,31.2 Q44.1,26.1 50.0,30.0 Z" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.4" stroke-linejoin="round"/>
+        <ellipse cx="37" cy="57" rx="7.4" ry="7.6" fill="#47b39a" stroke="#2f2f2f" stroke-width="1.8"/>
+        <ellipse cx="37" cy="57.5" rx="3.0" ry="5.5" fill="#1b1816"/>
+        <circle cx="38.7" cy="54.6" r="1.9" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="7.4" ry="7.6" fill="#47b39a" stroke="#2f2f2f" stroke-width="1.8"/>
+        <ellipse cx="63" cy="57.5" rx="3.0" ry="5.5" fill="#1b1816"/>
+        <circle cx="64.7" cy="54.6" r="1.9" fill="#ffffff"/>
+        <path d="M46.5,65 L53.5,65 L50,69 Z" fill="#e6849a"/>
+        <path d="M50,69 Q47,73.5 43.5,71.5 M50,69 Q53,73.5 56.5,71.5" stroke="#c9a9a0" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M31,67 L9,63 M31,70 L9,72 M69,67 L91,63 M69,70 L91,72" stroke="#d8d0c4" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#ffffff" stroke="#d9d2c8" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d9d2c8" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="orange-chinchilla" viewBox="0 0 100 104" focusable="false">
+        <path d="M19,46 Q16,20 41,32 Z M81,46 Q84,20 59,32 Z" fill="#f2b45e" stroke="#d8913a" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M23,41 Q22,27 35,33 Z M77,41 Q78,27 65,33 Z" fill="#f4b6b8"/>
+        <path d="M50.0,30.0 Q55.9,26.1 60.4,31.2 Q67.1,28.9 70.0,34.8 Q77.0,34.2 78.0,40.4 Q84.7,41.5 83.7,47.5 Q89.5,50.4 86.6,55.7 Q91.2,60.0 86.6,64.3 Q89.5,69.6 83.7,72.5 Q84.7,78.5 78.0,79.6 Q77.0,85.8 70.0,85.2 Q67.1,91.1 60.4,88.8 Q55.9,93.9 50.0,90.0 Q44.1,93.9 39.6,88.8 Q32.9,91.1 30.0,85.2 Q23.0,85.8 22.0,79.6 Q15.3,78.5 16.3,72.5 Q10.5,69.6 13.4,64.3 Q8.8,60.0 13.4,55.7 Q10.5,50.4 16.3,47.5 Q15.3,41.5 22.0,40.4 Q23.0,34.2 30.0,34.8 Q32.9,28.9 39.6,31.2 Q44.1,26.1 50.0,30.0 Z" fill="#f2b45e" stroke="#d8913a" stroke-width="1.4" stroke-linejoin="round"/>
+        <ellipse cx="50" cy="71" rx="15" ry="9.5" fill="#fbe0b4"/>
+        <path d="M44,34 L45,40 M50,32 L50,39 M56,34 L55,40" stroke="#de9437" stroke-width="1.6" stroke-linecap="round"/>
+        <ellipse cx="37" cy="57" rx="7.4" ry="7.6" fill="#5bb37a" stroke="#6b4320" stroke-width="1.8"/>
+        <ellipse cx="37" cy="57.5" rx="3.0" ry="5.5" fill="#1b1816"/>
+        <circle cx="38.7" cy="54.6" r="1.9" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="7.4" ry="7.6" fill="#5bb37a" stroke="#6b4320" stroke-width="1.8"/>
+        <ellipse cx="63" cy="57.5" rx="3.0" ry="5.5" fill="#1b1816"/>
+        <circle cx="64.7" cy="54.6" r="1.9" fill="#ffffff"/>
+        <path d="M46.5,65 L53.5,65 L50,69 Z" fill="#d9707f"/>
+        <path d="M50,69 Q47,73.5 43.5,71.5 M50,69 Q53,73.5 56.5,71.5" stroke="#b0703a" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M31,67 L9,63 M31,70 L9,72 M69,67 L91,63 M69,70 L91,72" stroke="#fff3e0" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#f2b45e" stroke="#d8913a" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#f2b45e" stroke="#d8913a" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d8913a" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="tabby-mask" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 L22,16 L44,33 Z M80,46 L78,16 L56,33 Z" fill="#b48a5a"/>
+        <path d="M25,39 L26,23 L38,33 Z M75,39 L74,23 L62,33 Z" fill="#f4b6b8"/>
+        <clipPath id="catClipA"><ellipse cx="50" cy="60" rx="36" ry="30"/></clipPath>
+        <g clip-path="url(#catClipA)">
+          <rect x="0" y="0" width="100" height="100" fill="#b48a5a"/>
+          <path d="M37,38 L41,47 L45,39 L50,48 L55,39 L59,47 L63,38 M44,30 L45,37 M56,30 L55,37 M50,30 L50,36 M14,56 Q21,56 27,60 M15,64 Q21,64 27,67 M86,56 Q79,56 73,60 M85,64 Q79,64 73,67 M30,53 Q25,51 20,52 M70,53 Q75,51 80,52" stroke="#5e4330" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10,72 Q30,67 43,70 Q50,73 57,70 Q70,67 90,72 L90,100 L10,100 Z" fill="#fbf8f3"/>
+        </g>
+        <ellipse cx="37" cy="57" rx="6" ry="6.6" fill="#c8d46a"/>
+        <ellipse cx="37" cy="57.5" rx="2.4" ry="4.8" fill="#1b1816"/>
+        <circle cx="38.7" cy="54.6" r="1.5" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="6" ry="6.6" fill="#c8d46a"/>
+        <ellipse cx="63" cy="57.5" rx="2.4" ry="4.8" fill="#1b1816"/>
+        <circle cx="64.7" cy="54.6" r="1.5" fill="#ffffff"/>
+        <path d="M46.5,65 L53.5,65 L50,69 Z" fill="#e8899a"/>
+        <path d="M50,69 Q47,73.5 43.5,71.5 M50,69 Q53,73.5 56.5,71.5" stroke="#5e4330" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M31,67 L9,63 M31,70 L9,72 M69,67 L91,63 M69,70 L91,72" stroke="#e4dccf" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d8cbb8" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="tabby-bangs" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 L22,16 L44,33 Z M80,46 L78,16 L56,33 Z" fill="#a98462"/>
+        <path d="M25,39 L26,23 L38,33 Z M75,39 L74,23 L62,33 Z" fill="#f4b6b8"/>
+        <clipPath id="catClipB"><ellipse cx="50" cy="60" rx="36" ry="30"/></clipPath>
+        <g clip-path="url(#catClipB)">
+          <rect x="0" y="0" width="100" height="100" fill="#fbf8f3"/>
+          <path d="M8,20 L92,20 L92,60 Q80,57 70,57 L56,56 L53,40 L50,34 L47,40 L44,56 L30,57 Q20,57 8,60 Z" fill="#a98462"/>
+          <path d="M38,28 L40,36 M62,28 L60,36 M43,24 L46,31 M57,24 L54,31 M16,50 Q22,50 27,53 M84,50 Q78,50 73,53" stroke="#56402f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        </g>
+        <ellipse cx="50" cy="60" rx="36" ry="30" fill="none" stroke="#ddd2c2" stroke-width="1.4"/>
+        <ellipse cx="37" cy="57" rx="6" ry="6.6" fill="#a6cf5f"/>
+        <ellipse cx="37" cy="57.5" rx="2.4" ry="4.8" fill="#1b1816"/>
+        <circle cx="38.7" cy="54.6" r="1.5" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="6" ry="6.6" fill="#a6cf5f"/>
+        <ellipse cx="63" cy="57.5" rx="2.4" ry="4.8" fill="#1b1816"/>
+        <circle cx="64.7" cy="54.6" r="1.5" fill="#ffffff"/>
+        <path d="M46.5,65 L53.5,65 L50,69 Z" fill="#e8899a"/>
+        <path d="M50,69 Q47,73.5 43.5,71.5 M50,69 Q53,73.5 56.5,71.5" stroke="#8a7766" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M31,67 L9,63 M31,70 L9,72 M69,67 L91,63 M69,70 L91,72" stroke="#cfc4b4" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#fbf8f3" stroke="#d8cbb8" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#d8cbb8" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+    <svg class="cat-face" data-cat="american-shorthair" viewBox="0 0 100 104" focusable="false">
+        <path d="M20,46 L22,16 L44,33 Z M80,46 L78,16 L56,33 Z" fill="#c5c9cf"/>
+        <path d="M25,39 L26,23 L38,33 Z M75,39 L74,23 L62,33 Z" fill="#f4b6b8"/>
+        <clipPath id="catClipC"><ellipse cx="50" cy="60" rx="36" ry="30"/></clipPath>
+        <g clip-path="url(#catClipC)">
+          <rect x="0" y="0" width="100" height="100" fill="#c5c9cf"/>
+          <ellipse cx="50" cy="73" rx="16" ry="10" fill="#eceef0"/>
+          <path d="M50,30 L50,44 M44,30 L45,42 M56,30 L55,42 M37,40 L41,48 L45,42 L50,49 L55,42 L59,48 L63,40 M31,58 Q23,61 15,57 M69,58 Q77,61 85,57 M17,67 Q25,64 31,69 M83,67 Q75,64 69,69 M20,46 Q26,47 29,51 M80,46 Q74,47 71,51" stroke="#3c4048" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <ellipse cx="37" cy="57" rx="6" ry="6.6" fill="#8fc86a"/>
+        <ellipse cx="37" cy="57.5" rx="2.4" ry="4.8" fill="#1b1816"/>
+        <circle cx="38.7" cy="54.6" r="1.5" fill="#ffffff"/>
+        <ellipse cx="63" cy="57" rx="6" ry="6.6" fill="#8fc86a"/>
+        <ellipse cx="63" cy="57.5" rx="2.4" ry="4.8" fill="#1b1816"/>
+        <circle cx="64.7" cy="54.6" r="1.5" fill="#ffffff"/>
+        <path d="M46.5,65 L53.5,65 L50,69 Z" fill="#d9808d"/>
+        <path d="M50,69 Q47,73.5 43.5,71.5 M50,69 Q53,73.5 56.5,71.5" stroke="#3c4048" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <path d="M31,67 L9,63 M31,70 L9,72 M69,67 L91,63 M69,70 L91,72" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+        <ellipse cx="31" cy="97" rx="10.5" ry="7" fill="#c5c9cf" stroke="#8d939c" stroke-width="1.2"/>
+        <ellipse cx="69" cy="97" rx="10.5" ry="7" fill="#c5c9cf" stroke="#8d939c" stroke-width="1.2"/>
+        <path d="M28,92 L28,96 M34,92 L34,96 M66,92 L66,96 M72,92 L72,96" stroke="#8d939c" stroke-width="1.1" stroke-linecap="round"/>
+    </svg>
+  </div>
 
 <script>
 (function () {
@@ -729,6 +900,7 @@
     renderResult(rec);
     renderPrev();
     cheer();
+    catLove();
 
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     resultBox.scrollIntoView({ behavior: smoothOrAuto(), block: 'start' });
@@ -841,6 +1013,23 @@
     figure.classList.add('play');
   }
   figure.addEventListener('click', cheer);
+
+  // One of the five cats says 媽咪我愛你, never the same cat twice in a row.
+  var catPop = $('catPop');
+  var catFaces = catPop.querySelectorAll('.cat-face');
+  var lastCat = -1;
+  function catLove() {
+    var i;
+    do { i = Math.floor(Math.random() * catFaces.length); } while (catFaces.length > 1 && i === lastCat);
+    lastCat = i;
+    for (var k = 0; k < catFaces.length; k++) catFaces[k].classList.toggle('on', k === i);
+    catPop.classList.remove('show');
+    void catPop.getBoundingClientRect();
+    catPop.classList.add('show');
+  }
+  catPop.addEventListener('animationend', function (e) {
+    if (e.target === catPop) catPop.classList.remove('show');
+  });
 
   form.addEventListener('submit', function (e) { e.preventDefault(); calculate(); });
   $('resetBtn').addEventListener('click', reset);

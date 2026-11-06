@@ -12,17 +12,16 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    # Playwright's official image already has the Safari (WebKit) and Chrome
+    # engines installed, so nothing has to be downloaded on every run.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --user 1001
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
       - run: npm ci
-      - name: Install browsers (Safari engine + Chrome engine)
-        run: npx playwright install --with-deps webkit chromium
-      - name: Run tests
+      - name: Run tests (iPhone Safari engine + Android Chrome engine)
         run: npx playwright test
       - name: Upload test report
         if: failure()

@@ -35,6 +35,29 @@ test('按計算或點她，她會再揮一次手', async ({ page }) => {
   await expect(figure).toHaveClass(/play/);
 });
 
+test('每次算好熱量，會有一隻貓咪跳出來說「媽咪我愛你」，而且不會擋住按鈕', async ({ page }) => {
+  const pop = page.locator('#catPop');
+  await expect(pop.locator('.cat-face')).toHaveCount(5);
+  await calc(page, '10', '2', '3');
+  await expect(pop).toHaveClass(/show/);
+  await expect(pop.locator('.bubble')).toContainText('媽咪我愛你');
+  await expect(pop.locator('.cat-face.on')).toHaveCount(1);
+  // 貓咪還在畫面上的時候，按鈕照樣按得到
+  await page.click('#resetBtn');
+  await expect(page.locator('#can')).toHaveValue('');
+});
+
+test('五隻貓隨機出現，不會連續兩次都是同一隻', async ({ page }) => {
+  await page.fill('#can', '10');
+  const seen = [];
+  for (let i = 0; i < 25; i++) {
+    await page.click('.btn-calc');
+    seen.push(await page.locator('#catPop .cat-face.on').getAttribute('data-cat'));
+  }
+  for (let i = 1; i < seen.length; i++) expect(seen[i]).not.toBe(seen[i - 1]);
+  expect(new Set(seen).size).toBeGreaterThanOrEqual(3);
+});
+
 test('每個輸入框都會跳出有小數點的數字鍵盤', async ({ page }) => {
   for (const id of ['can', 'density', 'water', 'left']) {
     await expect(page.locator('#' + id)).toHaveAttribute('inputmode', 'decimal');
