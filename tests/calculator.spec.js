@@ -33,6 +33,13 @@ test('標題是「老婆大人」，打開網頁時動畫不會擋住輸入', as
   await expect(can).toHaveValue('85');
 });
 
+test('主畫面圖示檔案存在，而且是 PNG 圖片', async ({ page, request }) => {
+  const href = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href');
+  const res = await request.get('/' + href);
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('image/png');
+});
+
 test('按計算或點她，她會再揮一次手', async ({ page }) => {
   const figure = page.locator('#figure');
   await calc(page, '10', '2', '3');
