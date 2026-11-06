@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8dc86">
+<meta name="format-detection" content="telephone=no">
+<meta name="color-scheme" content="light">
+<title>貓咪熱量計算器</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>">
+<style>
+  :root {
+    --bg-top: #fcf1cb;
+    --bg-bottom: #f5d06f;
+    --card: #fffaf0;
+    --card-border: #eba13a;
+    --brown: #8a4512;
+    --muted: #a8763e;
+    --field-border: #f3d15c;
+    --field-focus: #eba13a;
+    --zero: #f3c14b;
+    --zero-press: #e6ad2c;
+    --orange: #eda136;
+    --orange-press: #dc8f22;
+    --purple: #8b5cf6;
+    --purple-press: #7746e8;
+    --radio-dot: #3b82f6;
+    --green-bg: #e4f9ea;
+    --green-border: #a3e6b6;
+    --green-text: #1f6b35;
+    --green-soft: #3f8a55;
+    --blue-bg: #e0ebfe;
+    --blue-border: #9cc0f7;
+    --blue-text: #1e40af;
+    --red-bg: #fde9e7;
+    --red-border: #f5a8a0;
+    --red-text: #b42318;
+    --font: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans TC",
+            "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    min-height: 100%;
+    background-color: var(--bg-top);
+    background-image: linear-gradient(160deg, var(--bg-top) 0%, #f9e3a0 45%, var(--bg-bottom) 100%);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: var(--font);
+    color: var(--brown);
+    background: transparent;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+  }
+
+  button, input { font-family: inherit; }
+  button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+
+  .card {
+    max-width: 520px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 3px solid var(--card-border);
+    border-radius: 34px;
+    padding: 28px 18px 24px;
+    box-shadow: 0 18px 40px rgba(176, 112, 20, 0.18);
+  }
+
+  /* ---------- header ---------- */
+  header { text-align: center; margin-bottom: 22px; }
+  h1 {
+    margin: 0;
+    font-size: clamp(26px, 7.6vw, 34px);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+  }
+  h1 .emoji { margin-right: 6px; }
+  .dots { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+  .dots i { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--orange); }
+  .dots i:nth-child(2) { width: 10px; height: 10px; transform: translateY(-3px); }
+
+  /* ---------- fields ---------- */
+  .field { margin: 0 0 20px; padding: 0; border: 0; min-width: 0; }
+  .field > label, .field > legend {
+    display: block;
+    padding: 0;
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  .optional { font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 4px; }
+
+  .row { display: flex; gap: 12px; }
+  .row input { flex: 1; min-width: 0; }
+
+  input.num {
+    width: 100%;
+    height: 60px;
+    padding: 0 18px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #2b2117;
+    background: #fff;
+    border: 3px solid var(--field-border);
+    border-radius: 18px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    font-variant-numeric: tabular-nums;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input.num::placeholder { color: #c9b998; font-weight: 500; font-size: 18px; }
+  input.num:focus { border-color: var(--field-focus); box-shadow: 0 0 0 4px rgba(235, 161, 58, 0.22); }
+  input.num:disabled {
+    background: #fcf7ea;
+    border-color: #f6e7b4;
+    color: #9d9686;
+    -webkit-text-fill-color: #9d9686;
+    opacity: 1;
+  }
+  input.num.invalid { border-color: #ef7f72; box-shadow: 0 0 0 4px rgba(239, 127, 114, 0.18); }
+
+  .zero {
+    flex: 0 0 64px;
+    height: 60px;
+    border: 0;
+    border-radius: 18px;
+    background: var(--zero);
+    color: #fff;
+    font-size: 26px;
+    font-weight: 900;
+    box-shadow: 0 3px 0 rgba(200, 140, 20, 0.35);
+    transition: transform .08s, background .15s;
+  }
+  .zero:active { transform: translateY(2px) scale(0.97); background: var(--zero-press); box-shadow: none; }
+
+  /* ---------- density radios ---------- */
+  .radios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 50px;
+    padding: 6px 8px;
+    white-space: nowrap;
+    background: #fff;
+    border: 3px solid var(--field-border);
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2b2117;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color .15s, background .15s;
+  }
+  .radio input { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--radio-dot); }
+  .radio:has(input:checked) { border-color: var(--field-focus); background: #fff5da; }
+  .radio:has(input:focus-visible) { box-shadow: 0 0 0 4px rgba(235, 161, 58, 0.22); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 62px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 18px;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    transition: transform .08s, background .15s;
+  }
+  .btn:active { transform: translateY(2px) scale(0.99); }
+  .btn-calc { background: var(--orange); box-shadow: 0 4px 0 #cf8420; margin-top: 6px; }
+  .btn-calc:active { background: var(--orange-press); box-shadow: 0 1px 0 #cf8420; }
+  .btn-reset { background: var(--purple); box-shadow: 0 4px 0 #6d3fd6; }
+  .btn-reset:active { background: var(--purple-press); box-shadow: 0 1px 0 #6d3fd6; }
+
+  /* ---------- result boxes ---------- */
+  .box { margin-top: 24px; border-radius: 22px; border: 3px solid; padding: 20px 14px; scroll-margin-top: 16px; }
+  .box[hidden] { display: none; }
+
+  .result { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); transition: opacity .2s; }
+  .result .label { text-align: center; font-size: 18px; font-weight: 800; }
+  .result .big {
+    text-align: center;
+    font-size: clamp(38px, 12vw, 48px);
+    font-weight: 900;
+    line-height: 1.15;
+    margin: 4px 0 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .result .big small { font-size: 0.5em; font-weight: 800; margin-left: 4px; }
+  .result .sub { text-align: center; font-size: 15px; font-weight: 600; color: var(--green-soft); }
+
+  .stale-note { display: none; margin: 10px 0 0; text-align: center; font-size: 14px; font-weight: 700; color: #9a6a12; }
+  .result.stale { opacity: 0.55; }
+  .result.stale .stale-note { display: block; }
+
+  .steps-title { margin: 18px 0 10px; font-size: 16px; font-weight: 800; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .steps li {
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+  .nw { white-space: nowrap; }
+  .steps .step-name { display: block; font-size: 15px; font-weight: 800; color: var(--green-soft); margin-bottom: 2px; }
+  .steps .step-name .how { font-size: 13px; font-weight: 600; opacity: 0.9; }
+  .steps .eq {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+  .steps .eq b { font-weight: 900; }
+  .steps .extra .eq { font-size: 16px; }
+
+  .error { background: var(--red-bg); border-color: var(--red-border); color: var(--red-text); font-size: 17px; font-weight: 700; text-align: center; line-height: 1.5; }
+
+  .prev { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); text-align: center; }
+  .prev h2 { margin: 0; font-size: 20px; font-weight: 900; }
+  .prev .time { margin-top: 2px; font-size: 14px; font-weight: 600; opacity: 0.8; }
+  .prev .big { margin: 8px 0 6px; font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .prev ul { list-style: none; margin: 0; padding: 0; font-size: 15px; font-weight: 600; line-height: 1.7; font-variant-numeric: tabular-nums; }
+  .link-btn {
+    margin-top: 12px;
+    padding: 6px 10px;
+    border: 0;
+    background: none;
+    color: var(--blue-text);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: underline;
+    opacity: 0.75;
+  }
+
+  footer { margin-top: 22px; text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); line-height: 1.6; }
+
+  @media (max-width: 360px) {
+    .card { padding: 22px 12px 22px; border-radius: 28px; }
+    .radio { padding: 6px 4px; font-size: 16px; gap: 5px; }
+    .steps .eq { font-size: 16px; }
+    .zero { flex-basis: 56px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main class="card">
+  <header>
+    <h1><span class="emoji" aria-hidden="true">🐱</span>貓咪熱量計算器</h1>
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  </header>
+
+  <form id="form" novalidate autocomplete="off">
+    <div class="field">
+      <label for="can">🥫 1. 罐頭重量 (公克)</label>
+      <div class="row">
+        <input id="can" class="num" type="text" inputmode="decimal" enterkeyhint="next"
+               placeholder="例如 85" data-int="5" data-dec="2">
+        <button type="button" class="zero" data-zero="can" aria-label="罐頭重量填入 0">0</button>
+      </div>
+    </div>
+
+    <fieldset class="field">
+      <legend>🔥 2. 罐頭每公克熱量 (大卡/克)</legend>
+      <div class="radios" role="radiogroup">
+        <label class="radio"><input type="radio" name="dens" value="custom"><span>自訂</span></label>
+        <label class="radio"><input type="radio" name="dens" value="0.85" checked><span>0.85</span></label>
+        <label class="radio"><input type="radio" name="dens" value="0.966"><span>0.966</span></label>
+      </div>
+      <input id="density" class="num" type="text" inputmode="decimal" enterkeyhint="next"
+             placeholder="輸入每公克熱量，例如 1.05" aria-label="每公克熱量 (大卡/克)"
+             data-int="2" data-dec="3" disabled value="0.85">
+    </fieldset>
+
+    <div class="field">
+      <label for="water">💧 3. 加入的水量 (公克/ml)<span class="optional">選擇性</span></label>
+      <div class="row">
+        <input id="water" class="num" type="text" inputmode="decimal" enterkeyhint="next"
+               placeholder="沒加水可留空" data-int="5" data-dec="2">
+        <button type="button" class="zero" data-zero="water" aria-label="加入的水量填入 0">0</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="left">🍽️ 4. 總共剩下 (公克)<span class="optional">選擇性</span></label>
+      <div class="row">
+        <input id="left" class="num" type="text" inputmode="decimal" enterkeyhint="done"
+               placeholder="吃光光可留空" data-int="5" data-dec="2">
+        <button type="button" class="zero" data-zero="left" aria-label="總共剩下填入 0">0</button>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-calc">🧮 計算熱量</button>
+    <button type="button" class="btn btn-reset" id="resetBtn">🔄 重置</button>
+  </form>
+
+  <section id="error" class="box error" hidden role="alert"></section>
+
+  <section id="result" class="box result" hidden aria-live="polite">
+    <div class="label">🐱 貓咪攝取熱量</div>
+    <div class="big"><span id="kcal">0.00</span><small>大卡</small></div>
+    <div class="sub" id="resultSub"></div>
+    <p class="stale-note">✏️ 數字有變更，請再按一次「計算熱量」</p>
+    <div class="steps-title">📊 計算過程：</div>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section id="prev" class="box prev" hidden>
+    <h2>📋 上一筆計算</h2>
+    <div class="time" id="prevTime"></div>
+    <div class="big">🐱 <span id="prevKcal"></span> 大卡</div>
+    <ul id="prevLines"></ul>
+    <button type="button" class="link-btn" id="clearHistory">清除紀錄</button>
+  </section>
+
+  <footer>
+    所有數字都可以輸入到小數點後兩位，結果也算到小數點後兩位（四捨五入）。<br>
+    紀錄只存在這支手機的瀏覽器裡。
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'catKcalCalc.v1';
+  var MAX_RECORDS = 10;
+  var PRESETS = { '0.85': '0.85', '0.966': '0.966' };
+
+  function $(id) { return document.getElementById(id); }
+
+  var form = $('form');
+  var inputs = { can: $('can'), water: $('water'), left: $('left'), density: $('density') };
+  var densRadios = Array.prototype.slice.call(document.querySelectorAll('input[name="dens"]'));
+  var resultBox = $('result');
+  var errorBox = $('error');
+  var prevBox = $('prev');
+
+  // ------------------------------------------------------------------
+  // State (persisted to localStorage so a reloaded tab keeps everything)
+  // ------------------------------------------------------------------
+  var state = {
+    records: [],          // newest first: { t, in: {can, water, left, density}, out: {...} }
+    showingCurrent: false,
+    draft: { can: '', water: '', left: '', dens: '0.85', custom: '' }
+  };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data && Array.isArray(data.records)) state.records = data.records.filter(isValidRecord);
+      if (data && data.draft && typeof data.draft === 'object') {
+        var d = data.draft;
+        ['can', 'water', 'left', 'custom'].forEach(function (k) {
+          if (typeof d[k] === 'string') state.draft[k] = d[k];
+        });
+        if (d.dens === 'custom' || PRESETS[d.dens]) state.draft.dens = d.dens;
+      }
+    } catch (e) { /* storage unavailable: start fresh */ }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ records: state.records, draft: state.draft }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function isValidRecord(r) {
+    return r && typeof r.t === 'number' && r.in && r.out &&
+      ['can', 'water', 'left', 'density'].every(function (k) { return Number.isInteger(r.in[k]); }) &&
+      ['total', 'eaten', 'eatenCan', 'kcal'].every(function (k) { return Number.isInteger(r.out[k]); });
+  }
+
+  // ------------------------------------------------------------------
+  // Number helpers. All maths is done on integers (fixed point) so we
+  // never get floating-point surprises like 0.1 + 0.2 = 0.30000000000000004.
+  //   weights  -> hundredths of a gram   (10.5 g   -> 1050)
+  //   density  -> thousandths of kcal/g  (0.966    -> 966)
+  //   kcal     -> hundredths of a kcal   (6.38     -> 638)
+  // ------------------------------------------------------------------
+
+  // Keep only digits and one decimal point, limited decimals / integer digits.
+  function sanitize(raw, maxInt, maxDec) {
+    var s = String(raw)
+      .replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/[,，。．،٫]/g, '.')
+      .replace(/[^\d.]/g, '');
+    var dot = s.indexOf('.');
+    var intPart = dot === -1 ? s : s.slice(0, dot);
+    var decPart = dot === -1 ? null : s.slice(dot + 1).replace(/\./g, '').slice(0, maxDec);
+    intPart = intPart.replace(/^0+(?=\d)/, '').slice(0, maxInt);
+    if (decPart !== null && intPart === '') intPart = '0';
+    return decPart === null ? intPart : intPart + '.' + decPart;
+  }
+
+  // "10.5" (dec=2) -> 1050 ; "" -> null
+  function toFixedInt(str, dec) {
+    if (str === '' || str == null) return null;
+    var parts = str.split('.');
+    var i = parts[0] || '0';
+    var f = ((parts[1] || '') + '0000').slice(0, dec);
+    return Number(i) * Math.pow(10, dec) + Number(f);
+  }
+
+  // 1050 (dec=2) -> "10.50"
+  function fmt(n, dec) {
+    var base = Math.pow(10, dec);
+    var sign = n < 0 ? '-' : '';
+    n = Math.abs(n);
+    var f = String(n % base);
+    while (f.length < dec) f = '0' + f;
+    return sign + Math.floor(n / base) + '.' + f;
+  }
+
+  // density thousandths -> "0.85" / "0.966" / "1.00"
+  function fmtDensity(th) {
+    return th % 10 === 0 ? fmt(th / 10, 2) : fmt(th, 3);
+  }
+
+  // Integer division a / b rounded half-up (a >= 0, b > 0).
+  function roundDiv(a, b) {
+    var q = Math.floor(a / b);
+    var r = a - q * b;
+    while (r < 0) { q -= 1; r += b; }
+    while (r >= b) { q += 1; r -= b; }
+    if (2 * r >= b) q += 1;
+    return q;
+  }
+
+  // ------------------------------------------------------------------
+  // The calculation
+  //   總重量   = 罐頭 + 水
+  //   吃掉重量 = 總重量 - 剩下
+  //   吃掉罐頭 = (吃掉重量 ÷ 總重量) × 罐頭      (水和罐頭是均勻混合的)
+  //   攝取熱量 = 吃掉罐頭 × 每公克熱量
+  // Every step is rounded to 2 decimals, so each line of the shown
+  // formula can be checked by hand with a calculator.
+  // ------------------------------------------------------------------
+  function compute(v) {
+    var total = v.can + v.water;
+    var eaten = total - v.left;
+    var eatenCan = total === 0 ? 0 : roundDiv(eaten * v.can, total);
+    var kcal = roundDiv(eatenCan * v.density, 1000);
+    return { total: total, eaten: eaten, eatenCan: eatenCan, eatenWater: eaten - eatenCan, kcal: kcal };
+  }
+
+  function readDensityString() {
+    var choice = currentDensChoice();
+    return choice === 'custom' ? inputs.density.value : PRESETS[choice];
+  }
+
+  function currentDensChoice() {
+    for (var i = 0; i < densRadios.length; i++) if (densRadios[i].checked) return densRadios[i].value;
+    return '0.85';
+  }
+
+  function validate() {
+    clearInvalid();
+    var can = toFixedInt(inputs.can.value, 2);
+    var density = toFixedInt(readDensityString(), 3);
+    var water = toFixedInt(inputs.water.value, 2);
+    var left = toFixedInt(inputs.left.value, 2);
+    if (water === null) water = 0;
+    if (left === null) left = 0;
+
+    if (can === null) return fail('請先輸入「1. 罐頭重量」喔！', inputs.can);
+    if (density === null) return fail('請輸入「2. 罐頭每公克熱量」喔！', inputs.density);
+    if (can + water === 0) return fail('罐頭＋水的總重量是 0，沒辦法計算喔！', inputs.can);
+    if (left > can + water) {
+      return fail('剩下的重量（' + fmt(left, 2) + 'g）不能比總重量（' +
+        fmt(can + water, 2) + 'g）還多喔！', inputs.left);
+    }
+    return { ok: true, values: { can: can, water: water, left: left, density: density } };
+  }
+
+  function fail(msg, el) {
+    if (el) el.classList.add('invalid');
+    return { ok: false, msg: msg };
+  }
+
+  function clearInvalid() {
+    Object.keys(inputs).forEach(function (k) { inputs[k].classList.remove('invalid'); });
+  }
+
+  // ------------------------------------------------------------------
+  // Rendering
+  // ------------------------------------------------------------------
+  function g(n) { return fmt(n, 2) + 'g'; }
+
+  // name: step title, how: the general formula, lhs/rhs: the numbers.
+  // Each chunk is kept on one line, so on a narrow phone the line only
+  // breaks before "=" instead of in the middle of a number.
+  function stepHTML(name, how, lhs, rhs, extra) {
+    return '<li' + (extra ? ' class="extra"' : '') + '>' +
+      '<span class="step-name"><span class="nw">' + name + '</span> <span class="nw how">' + how + '</span></span>' +
+      '<span class="eq"><span class="nw">' + lhs + '</span> <span class="nw">= <b>' + rhs + '</b></span></span></li>';
+  }
+
+  function renderResult(rec) {
+    var v = rec.in, o = rec.out;
+    $('kcal').textContent = fmt(o.kcal, 2);
+    $('resultSub').textContent = '吃掉罐頭 ' + g(o.eatenCan) + '（共吃掉 ' + g(o.eaten) + '）';
+
+    var html = '';
+    html += stepHTML('① 總重量', '= 罐頭 + 水',
+      g(v.can) + ' + ' + g(v.water), g(o.total));
+    html += stepHTML('② 吃掉重量', '= 總重量 − 剩下',
+      g(o.total) + ' − ' + g(v.left), g(o.eaten));
+    html += stepHTML('③ 吃掉罐頭', '= (吃掉重量 ÷ 總重量) × 罐頭',
+      '(' + g(o.eaten) + ' ÷ ' + g(o.total) + ') × ' + g(v.can), g(o.eatenCan));
+    html += stepHTML('④ 攝取熱量', '= 吃掉罐頭 × 每公克熱量',
+      g(o.eatenCan) + ' × ' + fmtDensity(v.density), fmt(o.kcal, 2) + ' 大卡');
+    if (v.water > 0) {
+      html += stepHTML('💧 順便算：喝到的水', '= 吃掉重量 − 吃掉罐頭',
+        g(o.eaten) + ' − ' + g(o.eatenCan), g(o.eaten - o.eatenCan), true);
+    }
+    $('steps').innerHTML = html;
+
+    resultBox.classList.remove('stale');
+    resultBox.hidden = false;
+  }
+
+  function formatTime(t) {
+    var d = new Date(t);
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  function renderPrev() {
+    // While a fresh result is on screen, records[0] IS that result,
+    // so "上一筆" must be records[1]. Otherwise it's records[0].
+    var rec = state.records[state.showingCurrent ? 1 : 0];
+    if (!rec) { prevBox.hidden = true; return; }
+    var v = rec.in, o = rec.out;
+    $('prevTime').textContent = formatTime(rec.t);
+    $('prevKcal').textContent = fmt(o.kcal, 2);
+    var lines = [
+      ['• 總重量 = ' + g(v.can) + ' + ' + g(v.water), '= ' + g(o.total)],
+      ['• 吃掉重量 = ' + g(o.total) + ' − ' + g(v.left), '= ' + g(o.eaten)],
+      ['• 吃掉罐頭 = ' + g(o.eatenCan)],
+      ['• 熱量密度 = ' + fmtDensity(v.density) + ' 大卡/克']
+    ];
+    var ul = $('prevLines');
+    ul.innerHTML = '';
+    lines.forEach(function (chunks) {
+      var li = document.createElement('li');
+      chunks.forEach(function (text, i) {
+        if (i > 0) li.appendChild(document.createTextNode(' '));
+        var span = document.createElement('span');
+        span.className = 'nw';
+        span.textContent = text;
+        li.appendChild(span);
+      });
+      ul.appendChild(li);
+    });
+    prevBox.hidden = false;
+  }
+
+  function sameInputs(a, b) {
+    return a.can === b.can && a.water === b.water && a.left === b.left && a.density === b.density;
+  }
+
+  // ------------------------------------------------------------------
+  // Actions
+  // ------------------------------------------------------------------
+  function calculate() {
+    var check = validate();
+    if (!check.ok) {
+      errorBox.textContent = '⚠️ ' + check.msg;
+      errorBox.hidden = false;
+      resultBox.hidden = true;
+      state.showingCurrent = false;
+      renderPrev();
+      errorBox.scrollIntoView({ behavior: smoothOrAuto(), block: 'center' });
+      return;
+    }
+    errorBox.hidden = true;
+
+    var rec = { t: Date.now(), in: check.values, out: compute(check.values) };
+    var latest = state.records[0];
+    if (latest && sameInputs(latest.in, rec.in)) {
+      // Same numbers as the last calculation (e.g. tapped the button twice):
+      // don't push a duplicate, otherwise "上一筆" would equal this one.
+      rec = latest;
+    } else {
+      state.records.unshift(rec);
+      state.records = state.records.slice(0, MAX_RECORDS);
+    }
+    state.showingCurrent = true;
+    save();
+
+    renderResult(rec);
+    renderPrev();
+
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    resultBox.scrollIntoView({ behavior: smoothOrAuto(), block: 'start' });
+  }
+
+  function reset() {
+    inputs.can.value = '';
+    inputs.water.value = '';
+    inputs.left.value = '';
+    clearInvalid();
+    errorBox.hidden = true;
+    resultBox.hidden = true;
+    state.showingCurrent = false;   // the result just shown now becomes "上一筆"
+    saveDraft();
+    renderPrev();
+    window.scrollTo({ top: 0, behavior: smoothOrAuto() });
+    inputs.can.focus({ preventScroll: true });
+  }
+
+  function smoothOrAuto() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
+  function saveDraft() {
+    state.draft.can = inputs.can.value;
+    state.draft.water = inputs.water.value;
+    state.draft.left = inputs.left.value;
+    state.draft.dens = currentDensChoice();
+    if (state.draft.dens === 'custom') state.draft.custom = inputs.density.value;
+    save();
+  }
+
+  function markStale() {
+    if (!resultBox.hidden) resultBox.classList.add('stale');
+    if (!errorBox.hidden) errorBox.hidden = true;
+  }
+
+  function applyDensityChoice(choice, focus) {
+    densRadios.forEach(function (r) { r.checked = r.value === choice; });
+    if (choice === 'custom') {
+      inputs.density.disabled = false;
+      inputs.density.value = state.draft.custom;
+      if (focus) inputs.density.focus();
+    } else {
+      inputs.density.disabled = true;
+      inputs.density.value = PRESETS[choice];
+      inputs.density.classList.remove('invalid');
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Wiring
+  // ------------------------------------------------------------------
+  Object.keys(inputs).forEach(function (key) {
+    var el = inputs[key];
+    var maxInt = Number(el.getAttribute('data-int'));
+    var maxDec = Number(el.getAttribute('data-dec'));
+    el.addEventListener('input', function () {
+      var raw = el.value;
+      var clean = sanitize(raw, maxInt, maxDec);
+      if (clean !== raw) {
+        var fromEnd = raw.length - (el.selectionEnd == null ? raw.length : el.selectionEnd);
+        el.value = clean;
+        var pos = Math.max(0, clean.length - fromEnd);
+        try { el.setSelectionRange(pos, pos); } catch (e) { /* ignore */ }
+      }
+      el.classList.remove('invalid');
+      saveDraft();
+      markStale();
+    });
+  });
+
+  // Enter / "next" on the keypad moves to the next box; on the last box it calculates.
+  var order = ['can', 'density', 'water', 'left'];
+  order.forEach(function (key, idx) {
+    inputs[key].addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      for (var j = idx + 1; j < order.length; j++) {
+        var next = inputs[order[j]];
+        if (!next.disabled) { next.focus(); return; }
+      }
+      calculate();
+    });
+  });
+
+  document.querySelectorAll('[data-zero]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var el = inputs[btn.getAttribute('data-zero')];
+      el.value = '0';
+      el.classList.remove('invalid');
+      saveDraft();
+      markStale();
+    });
+  });
+
+  densRadios.forEach(function (r) {
+    r.addEventListener('change', function () {
+      if (!r.checked) return;
+      applyDensityChoice(r.value, true);
+      saveDraft();
+      markStale();
+    });
+  });
+
+  form.addEventListener('submit', function (e) { e.preventDefault(); calculate(); });
+  $('resetBtn').addEventListener('click', reset);
+  $('clearHistory').addEventListener('click', function () {
+    if (!window.confirm('要清除所有計算紀錄嗎？')) return;
+    state.records = state.showingCurrent ? state.records.slice(0, 1) : [];
+    save();
+    renderPrev();
+  });
+
+  // ------------------------------------------------------------------
+  // Init
+  // ------------------------------------------------------------------
+  load();
+  inputs.can.value = sanitize(state.draft.can, 5, 2);
+  inputs.water.value = sanitize(state.draft.water, 5, 2);
+  inputs.left.value = sanitize(state.draft.left, 5, 2);
+  state.draft.custom = sanitize(state.draft.custom, 2, 3);
+  applyDensityChoice(state.draft.dens, false);
+  renderPrev();
+})();
+</script>
+</body>
+</html>
