@@ -157,7 +157,8 @@
      flex on <legend> itself is unreliable in older Safari). */
   .field > label.with-icon, .legend-row { display: flex; align-items: center; gap: 6px; }
   .field > label.with-icon, .field > legend.with-icon { margin-bottom: 8px; }
-  .label-icon { flex: 0 0 auto; width: auto; height: 38px; }
+  /* Same-size box for every heading picture, so all heading texts start at the same spot. */
+  .label-icon { flex: 0 0 auto; width: 50px; height: 42px; object-fit: contain; }
   .label-text { min-width: 0; }
   .optional { white-space: nowrap; }
   .optional { font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 4px; }
@@ -371,7 +372,7 @@
     .radio input { width: 18px; height: 18px; }
     .steps .eq { font-size: 16px; }
     .zero { flex-basis: 56px; }
-    .label-icon { height: 32px; }
+    .label-icon { width: 42px; height: 36px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -454,7 +455,7 @@
 
   <form id="form" novalidate autocomplete="off">
     <div class="field">
-      <label for="can" class="with-icon"><img src="can-icon.png" class="label-icon" width="40" height="38" alt=""><span class="label-text">1. 罐頭重量 <span class="nw">(公克)</span></span></label>
+      <label for="can" class="with-icon"><img src="can-icon.png" class="label-icon" width="50" height="42" alt=""><span class="label-text">1. 罐頭重量 <span class="nw">(公克)</span></span></label>
       <div class="row">
         <input id="can" class="num" type="text" inputmode="decimal" enterkeyhint="next"
                placeholder="例如 85" data-int="5" data-dec="2">
@@ -463,7 +464,7 @@
     </div>
 
     <fieldset class="field">
-      <legend class="with-icon"><span class="legend-row"><img src="kcal-icon.png" class="label-icon" width="35" height="38" alt=""><span class="label-text">2. 罐頭每公克熱量 <span class="nw">(大卡/克)</span></span></span></legend>
+      <legend class="with-icon"><span class="legend-row"><img src="kcal-icon.png" class="label-icon" width="50" height="42" alt=""><span class="label-text">2. 罐頭每公克熱量 <span class="nw">(大卡/克)</span></span></span></legend>
       <div class="radios" role="radiogroup">
         <label class="radio"><input type="radio" name="dens" value="custom"><span>自訂</span></label>
         <label class="radio"><input type="radio" name="dens" value="0.85" checked><span>0.85</span></label>
@@ -475,7 +476,7 @@
     </fieldset>
 
     <div class="field">
-      <label for="water" class="with-icon"><img src="water-icon.png" class="label-icon" width="45" height="38" alt=""><span class="label-text">3. 加入的水量 <span class="nw">(公克/ml)</span><span class="optional">選擇性</span></span></label>
+      <label for="water" class="with-icon"><img src="water-icon.png" class="label-icon" width="50" height="42" alt=""><span class="label-text">3. 加入的水量 <span class="nw">(公克/ml)</span><span class="optional">選擇性</span></span></label>
       <div class="row">
         <input id="water" class="num" type="text" inputmode="decimal" enterkeyhint="next"
                placeholder="沒加水可留空" data-int="5" data-dec="2">
@@ -484,7 +485,7 @@
     </div>
 
     <div class="field">
-      <label for="left" class="with-icon"><img src="left-icon.png" class="label-icon" width="59" height="38" alt=""><span class="label-text">4. 總共剩下 <span class="nw">(公克)</span><span class="optional">選擇性</span></span></label>
+      <label for="left" class="with-icon"><img src="left-icon.png" class="label-icon" width="50" height="42" alt=""><span class="label-text">4. 總共剩下 <span class="nw">(公克)</span><span class="optional">選擇性</span></span></label>
       <div class="row">
         <input id="left" class="num" type="text" inputmode="decimal" enterkeyhint="done"
                placeholder="吃光光可留空" data-int="5" data-dec="2">

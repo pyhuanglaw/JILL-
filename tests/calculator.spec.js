@@ -50,6 +50,19 @@ test('1～4 每個標題前面的圖片都有載入', async ({ page }) => {
   }
 });
 
+test('1～4 的圖片一樣大，標題文字都從同一個位置開始', async ({ page }) => {
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    const icons = await page.locator('.field img.label-icon').evaluateAll((els) =>
+      els.map((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; }));
+    expect(new Set(icons.map(String)).size, `圖片大小 @${width}px: ${JSON.stringify(icons)}`).toBe(1);
+    const starts = await page.locator('.field .label-text').evaluateAll((els) =>
+      els.map((el) => Math.round(el.getBoundingClientRect().left)));
+    expect(starts).toHaveLength(4);
+    expect(new Set(starts).size, `文字起點 @${width}px: ${JSON.stringify(starts)}`).toBe(1);
+  }
+});
+
 test('按計算或點她，她會再揮一次手', async ({ page }) => {
   const figure = page.locator('#figure');
   await calc(page, '10', '2', '3');
