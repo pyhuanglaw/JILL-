@@ -40,10 +40,14 @@ test('主畫面圖示檔案存在，而且是 PNG 圖片', async ({ page, reques
   expect(res.headers()['content-type']).toContain('image/png');
 });
 
-test('「1. 罐頭重量」前面的罐頭圖片有載入', async ({ page }) => {
-  const img = page.locator('label[for="can"] img.label-icon');
-  await expect(img).toBeVisible();
-  await expect.poll(() => img.evaluate((el) => el.complete && el.naturalWidth)).toBeGreaterThan(0);
+test('1～4 每個標題前面的圖片都有載入', async ({ page }) => {
+  const imgs = page.locator('.field img.label-icon');
+  await expect(imgs).toHaveCount(4);
+  for (const src of ['can-icon.png', 'kcal-icon.png', 'water-icon.png', 'left-icon.png']) {
+    const img = page.locator(`.field img.label-icon[src="${src}"]`);
+    await expect(img, src).toBeVisible();
+    await expect.poll(() => img.evaluate((el) => el.complete && el.naturalWidth), { message: src }).toBeGreaterThan(0);
+  }
 });
 
 test('按計算或點她，她會再揮一次手', async ({ page }) => {
