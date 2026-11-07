@@ -71,16 +71,24 @@ test('按計算或點她，她會再揮一次手', async ({ page }) => {
   await expect(figure).toHaveClass(/play/);
 });
 
-test('每次算好熱量，會有一隻貓咪跳出來說「媽咪我愛你」，而且不會擋住按鈕', async ({ page }) => {
+test('每次算好熱量，會有一隻貓咪的「謝謝媽媽」圖跳出來，而且不會擋住按鈕', async ({ page }) => {
   const pop = page.locator('#catPop');
-  await expect(pop.locator('.cat-face')).toHaveCount(5);
+  await expect(pop.locator('img.cat-face')).toHaveCount(5);
   await calc(page, '10', '2', '3');
   await expect(pop).toHaveClass(/show/);
-  await expect(pop.locator('.bubble')).toContainText('媽咪我愛你');
-  await expect(pop.locator('.cat-face.on')).toHaveCount(1);
-  // 貓咪還在畫面上的時候，按鈕照樣按得到
+  const shown = pop.locator('img.cat-face.on');
+  await expect(shown).toHaveCount(1);
+  await expect(shown).toHaveAttribute('alt', '謝謝媽媽');
+  await expect.poll(() => shown.evaluate((el) => el.complete && el.naturalWidth)).toBeGreaterThan(0);
+  // 圖片還在畫面上的時候，按鈕照樣按得到
   await page.click('#resetBtn');
   await expect(page.locator('#can')).toHaveValue('');
+});
+
+test('五張「謝謝媽媽」圖片都存在而且載得出來', async ({ page }) => {
+  const imgs = page.locator('#catPop img.cat-face');
+  await expect.poll(() => imgs.evaluateAll((els) => els.filter((el) => el.complete && el.naturalWidth > 0).length),
+    { timeout: 10000 }).toBe(5);
 });
 
 test('五隻貓隨機出現，不會連續兩次都是同一隻', async ({ page }) => {
