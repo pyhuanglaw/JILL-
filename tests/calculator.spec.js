@@ -142,6 +142,45 @@ test('三個 0 按鈕都能用，按 0 之後再打數字不會留下前面的 0
   await expect(page.locator('#can')).toHaveValue('7');
 });
 
+test('打數字時鍵盤上方有「下一格」：1 → 3 → 4，最後一格按下去直接計算', async ({ page }) => {
+  const bar = page.locator('#kbBar');
+  const next = page.locator('#kbNext');
+  await expect(bar).toBeHidden();
+
+  await page.locator('#can').click();
+  await expect(bar).toBeVisible();
+  await expect(next).toHaveText('下一格 ↓');
+  await page.keyboard.type('10');
+
+  await next.tap();                                   // 2 是預設的 0.85，跳過
+  await expect(page.locator('#water')).toBeFocused();
+  await page.keyboard.type('2');
+
+  await next.tap();
+  await expect(page.locator('#left')).toBeFocused();
+  await expect(next).toHaveText('計算熱量 ✓');
+  await page.keyboard.type('3');
+
+  await next.tap();
+  await expect(page.locator('#kcal')).toHaveText('6.38');
+  await expect(bar).toBeHidden();
+});
+
+test('選「自訂」熱量時，下一格會經過 2. 每公克熱量', async ({ page }) => {
+  await page.click('label.radio:has(input[value="custom"])');
+  await page.locator('#can').click();
+  await page.locator('#kbNext').tap();
+  await expect(page.locator('#density')).toBeFocused();
+  await page.locator('#kbNext').tap();
+  await expect(page.locator('#water')).toBeFocused();
+});
+
+test('用滑鼠按「下一格」也可以跳下一格', async ({ page }) => {
+  await page.locator('#water').click();
+  await page.locator('#kbNext').click();
+  await expect(page.locator('#left')).toBeFocused();
+});
+
 test('截圖的例子：罐頭 10g、0.85、加水 2g、剩 3g → 6.38 大卡，並列出算式', async ({ page }) => {
   await calc(page, '10', '2', '3');
   await expect(page.locator('#kcal')).toHaveText('6.38');

@@ -346,6 +346,40 @@
   }
   @keyframes fadepop { 0% { opacity: 0; } 10%, 85% { opacity: 1; } 100% { opacity: 0; } }
 
+  /* ---------- 下一格 button that sits right above the phone keypad ----------
+     iPhone's number keypad has no Enter key, so we add our own. It is moved
+     with the visual viewport so it always sits on top of the keyboard. */
+  .kb-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    display: flex;
+    justify-content: flex-end;
+    padding: 6px 12px;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .kb-bar[hidden] { display: none; }
+  .kb-next {
+    pointer-events: auto;
+    min-height: 46px;
+    padding: 0 22px;
+    border: 3px solid #fff;
+    border-radius: 999px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    box-shadow: 0 6px 16px rgba(176, 112, 20, 0.35);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .kb-next:active { background: var(--orange-press); }
+  .kb-next.is-last { background: var(--green-text); }
+
   @media (max-width: 360px) {
     .card { padding: 22px 12px 22px; border-radius: 28px; }
     .radio { padding: 6px 4px; font-size: 15px; gap: 4px; }
@@ -502,6 +536,11 @@
     紀錄只存在這支手機的瀏覽器裡。
   </footer>
 </main>
+
+  <!-- 下一格 / 計算熱量 button shown above the keypad while typing in a number box -->
+  <div id="kbBar" class="kb-bar" hidden>
+    <button type="button" id="kbNext" class="kb-next">下一格 ↓</button>
+  </div>
 
   <!-- After each calculation one of our five cats pops up saying 謝謝媽媽.
        The pictures start downloading only after the page has loaded. -->
@@ -865,18 +904,88 @@
     });
   });
 
-  // Enter / "next" on the keypad moves to the next box; on the last box it calculates.
+  // Moving between number boxes: 1 → (2 when 自訂) → 3 → 4 → calculate.
+  // Used by the Enter key (Android keypads) and by our own 下一格 button (iPhone).
   var order = ['can', 'density', 'water', 'left'];
-  order.forEach(function (key, idx) {
+  function keyOf(el) {
+    for (var i = 0; i < order.length; i++) if (inputs[order[i]] === el) return order[i];
+    return null;
+  }
+  function nextInput(key) {
+    for (var j = order.indexOf(key) + 1; j < order.length; j++) {
+      if (!inputs[order[j]].disabled) return inputs[order[j]];
+    }
+    return null;
+  }
+  function goNext(key) {
+    var next = nextInput(key);
+    if (next) { next.focus(); keepVisible(next); }
+    else calculate();
+  }
+  order.forEach(function (key) {
     inputs[key].addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      for (var j = idx + 1; j < order.length; j++) {
-        var next = inputs[order[j]];
-        if (!next.disabled) { next.focus(); return; }
-      }
-      calculate();
+      goNext(key);
     });
+  });
+
+  var kbBar = $('kbBar');
+  var kbNext = $('kbNext');
+  function placeKbBar() {
+    if (kbBar.hidden) return;
+    var vv = window.visualViewport;
+    var y = vv ? vv.offsetTop + vv.height : window.innerHeight;
+    kbBar.style.transform = 'translateY(' + Math.max(0, y - kbBar.offsetHeight) + 'px)';
+  }
+  function showKbBar(key) {
+    var last = !nextInput(key);
+    kbNext.textContent = last ? '計算熱量 ✓' : '下一格 ↓';
+    kbNext.classList.toggle('is-last', last);
+    kbBar.hidden = false;
+    placeKbBar();
+  }
+  // Keep the box we jumped to visible above the keypad and our button.
+  function keepVisible(el) {
+    [80, 400].forEach(function (ms) {
+      setTimeout(function () {
+        if (document.activeElement !== el) return;
+        var vv = window.visualViewport;
+        var top = vv ? vv.offsetTop : 0;
+        var bottom = top + (vv ? vv.height : window.innerHeight) - (kbBar.hidden ? 0 : kbBar.offsetHeight) - 12;
+        var r = el.getBoundingClientRect();
+        if (r.bottom > bottom) window.scrollBy(0, r.bottom - bottom);
+        else if (r.top < top + 12) window.scrollBy(0, r.top - top - 12);
+      }, ms);
+    });
+  }
+  document.addEventListener('focusin', function (e) {
+    var key = keyOf(e.target);
+    if (key) showKbBar(key);
+  });
+  document.addEventListener('focusout', function () {
+    setTimeout(function () {
+      if (!keyOf(document.activeElement)) kbBar.hidden = true;
+    }, 0);
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', placeKbBar);
+    window.visualViewport.addEventListener('scroll', placeKbBar);
+  }
+  window.addEventListener('scroll', placeKbBar, { passive: true });
+
+  // Tapping the button must not take focus away from the box (that would
+  // close the keypad), so the default touch/mouse behaviour is cancelled.
+  var kbTouched = false;
+  function kbGo() {
+    var key = keyOf(document.activeElement);
+    if (key) goNext(key);
+  }
+  kbNext.addEventListener('touchend', function (e) { e.preventDefault(); kbTouched = true; kbGo(); });
+  kbNext.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  kbNext.addEventListener('click', function () {
+    if (kbTouched) { kbTouched = false; return; }
+    kbGo();
   });
 
   document.querySelectorAll('[data-zero]').forEach(function (btn) {
